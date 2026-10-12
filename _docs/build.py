@@ -66,7 +66,7 @@ TEMPLATE = """<!doctype html>
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{description}">
 <meta property="og:url" content="{url}">
-<meta property="og:image" content="https://twitchedd.github.io/img/cover.png">
+<meta property="og:image" content="https://twitchedd.github.io/img/cover-v2.jpg">
 <link rel="icon" href="../../img/avatar.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
