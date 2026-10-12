@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Animate Unity UI Toolkit without code: the Cascade UI Animator</title>
+<meta name="description" content="Add entrance, hover, press and focus animations to a Unity UI Toolkit screen from the Inspector, with live preview in edit mode, using Cascade&#x27;s UI Animator component and presets. No C# required.">
+<link rel="canonical" href="https://twitchedd.github.io/cascade/docs/no-code.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Animate Unity UI Toolkit without code: the Cascade UI Animator">
+<meta property="og:description" content="Add entrance, hover, press and focus animations to a Unity UI Toolkit screen from the Inspector, with live preview in edit mode, using Cascade&#x27;s UI Animator component and presets. No C# required.">
+<meta property="og:url" content="https://twitchedd.github.io/cascade/docs/no-code.html">
+<meta property="og:image" content="https://twitchedd.github.io/img/cover.png">
+<link rel="icon" href="../../img/avatar.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="docs.css">
+<script src="search.js" defer></script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "TechArticle",
+ "headline": "Animate Unity UI Toolkit without code: the Cascade UI Animator",
+ "description": "Add entrance, hover, press and focus animations to a Unity UI Toolkit screen from the Inspector, with live preview in edit mode, using Cascade's UI Animator component and presets. No C# required.",
+ "url": "https://twitchedd.github.io/cascade/docs/no-code.html",
+ "author": {
+  "@type": "Organization",
+  "name": "twitched",
+  "url": "https://twitchedd.github.io/"
+ },
+ "about": {
+  "@type": "SoftwareApplication",
+  "name": "Cascade",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Unity 6000.0 or later",
+  "description": "Animation library for Unity UI Toolkit: tweens, springs, stagger and transitions.",
+  "offers": [
+   {
+    "@type": "Offer",
+    "name": "Cascade Lite",
+    "price": "0",
+    "priceCurrency": "USD",
+    "url": "https://assetstore.unity.com/packages/slug/394764"
+   },
+   {
+    "@type": "Offer",
+    "name": "Cascade Pro",
+    "url": "https://assetstore.unity.com/packages/slug/394760"
+   }
+  ]
+ }
+}
+</script>
+</head>
+<body>
+<div class="layout">
+<nav class="side" aria-label="Cascade docs">
+  <a class="home" href="../../">twitched<span>_</span></a>
+  <div class="search" role="search">
+    <input id="q" type="search" placeholder="Search docs  /" aria-label="Search the docs" autocomplete="off" spellcheck="false">
+    <ul id="results" role="listbox" hidden></ul>
+  </div>
+  <p class="group">Start</p>
+  <ul>
+    <li><a href="index.html">Overview</a></li>
+    <li><a href="getting-started.html">Getting started</a></li>
+  </ul>
+  <p class="group">Guides</p>
+  <ul>
+    <li><a href="animate-visualelement.html">Animate a VisualElement</a></li>
+    <li><a href="spring-animation.html">Spring animation</a></li>
+    <li><a href="stagger-list.html">Stagger a list</a></li>
+    <li><a href="transitions.html">Transitions</a></li>
+    <li><a href="recipes.html">Recipes</a></li>
+    <li><a href="no-code.html" aria-current="page">No-code: UI Animator</a></li>
+    <li><a href="effects.html">Shadow, glow and filters</a></li>
+    <li><a href="framer-motion.html">Coming from Framer Motion</a></li>
+    <li><a href="performance.html">Performance and lifecycle</a></li>
+    <li><a href="ai-and-skill.html">AI assistants and skill</a></li>
+  </ul>
+  <p class="group">Reference</p>
+  <ul>
+    <li><a href="easing.html">Easing curves</a></li>
+    <li><a href="api.html">API reference</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+  <p class="group">Get it</p>
+  <ul>
+    <li><a href="https://assetstore.unity.com/packages/slug/394764">Cascade Lite (free)</a></li>
+    <li><a href="https://assetstore.unity.com/packages/slug/394760">Cascade Pro</a></li>
+  </ul>
+</nav>
+<main class="doc">
+<article>
+<h1>No-code: the UI Animator <span class="tier pro">Pro</span></h1>
+<p class="lede">The UI Animator component lets designers add motion to a UI Toolkit screen from the
+Inspector: pick the elements, pick when, pick a preset, and preview it without entering Play mode.</p>
+
+<h2 id="before-you-start">Before you start</h2>
+<p>The screen must be a UI Toolkit UI: a GameObject with a <strong>UIDocument</strong> component pointing
+at a UXML file. Give the elements you want to animate a name or a USS class in UI Builder, for example
+<code>hero-card</code> or <code>menu-item</code>.</p>
+
+<h2 id="add-motion-in-six-steps">Add motion in six steps</h2>
+<ol>
+<li><strong>Add the component.</strong> Select the GameObject with the UIDocument, then
+<strong>Add Component ▸ Cascade ▸ UI Animator</strong>.</li>
+<li><strong>Add a rule.</strong> Click <strong>+</strong> in the Rules list. A rule reads as one sentence:
+these elements, on this trigger, play this.</li>
+<li><strong>Choose the elements.</strong> Click the ▾ next to the selector. It lists every element name and
+USS class in your UXML, with how many elements each matches. Or type one:
+<code>#hero-card</code> targets one named element, <code>.menu-item</code> targets every element with that class.</li>
+<li><strong>Choose when.</strong> <strong>OnEnable</strong> plays once when the screen appears (entrances).
+<strong>Hover</strong>, <strong>Press</strong> and <strong>Focus</strong> react to the pointer and keyboard.</li>
+<li><strong>Choose what.</strong> Pick a preset with ▾, or choose <strong>Create New…</strong> to make one in place.</li>
+<li><strong>Preview.</strong> Click ▶ on the rule. It plays in the Game view and then restores the
+elements. Adjust the preset and press ▶ again.</li>
+</ol>
+
+<h2 id="presets">Presets</h2>
+<p>Presets are assets you reuse across screens and projects. Create them from
+<strong>Assets ▸ Create ▸ Cascade</strong>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Preset</th><th>Use it for</th><th>Contains</th></tr></thead>
+<tbody>
+<tr><td>Transition Preset</td><td>entrances and exits</td><td>fade, slide from an edge, scale; one duration; an ease or a spring</td></tr>
+<tr><td>Interaction Preset</td><td>hover, press and focus</td><td>scale, fade, rotate to an "active" look</td></tr>
+<tr><td>Sequence Preset</td><td>multi-step choreography</td><td>steps that run in order, each with actions that run together; every verb, each with its own timing, ease or spring</td></tr>
+</tbody></table></div>
+<p>A rule's Sequence slot wins over its simple preset. Name presets by intent, such as
+<code>Entrance-SlideUp</code>, <code>Hover-Lift</code> or <code>Press-Squish</code>, and keep them in one
+folder so the motion style travels with you.</p>
+
+<h2 id="lists">Lists</h2>
+<p>When a selector matches several elements (such as <code>.menu-item</code>), set <strong>stagger</strong>
+on the rule: the seconds between each element's start. <code>0.06</code> gives the classic menu cascade.
+Stagger applies to OnEnable rules.</p>
+
+<h2 id="warnings">Warnings</h2>
+<p>The Inspector warns about rules that would do nothing: an empty selector, a missing preset, a preset
+with no channels enabled, or a hover that only fades to full opacity (elements already rest there). No
+warnings means the rule will do something visible.</p>
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><strong>Nothing happens on ▶:</strong> the console says the selector matched nothing. Fix the name or class, or pick from the ▾ list.</li>
+<li><strong>Nothing happens in Play mode:</strong> the preset changes nothing visible. Enable a channel.</li>
+<li><strong>Hover doesn't react:</strong> live pointer input needs Play mode. ▶ previews the motion any time.</li>
+<li><strong>An element is stuck halfway in edit mode:</strong> previews restore styles when they finish. If Unity was interrupted mid-preview, reopen the scene; edit-mode styles are never saved.</li>
+</ul>
+
+<h2 id="what-still-needs-code">What still needs code</h2>
+<ul>
+<li>Connecting <a href="recipes.html#respect-reduced-motion">reduced motion</a> to your settings menu: one line.</li>
+<li><a href="recipes.html">Named states</a> and <a href="transitions.html">screen swaps</a>.</li>
+<li>Motion triggered by gameplay events. A developer can play any preset from code:
+<code>myPreset.Play(element)</code>.</li>
+</ul>
+</article>
+<nav class="pager" aria-label="Next and previous page"><a href="recipes.html">← Recipes</a><a href="effects.html">Shadow, glow and filters →</a></nav>
+</main>
+</div>
+<footer>twitched · Cascade, the animation library for Unity UI Toolkit · <a href="../../">twitchedd.github.io</a></footer>
+</body>
+</html>

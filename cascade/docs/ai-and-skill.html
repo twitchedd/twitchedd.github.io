@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Animate Unity UI Toolkit with AI: the Cascade agent skill and JSON sequences</title>
+<meta name="description" content="Let Claude Code, Cursor, Codex or Copilot write Unity UI Toolkit animations with Cascade. Install the open agent skill, use the AI guide that ships in the package, and generate validated JSON animation sequences.">
+<link rel="canonical" href="https://twitchedd.github.io/cascade/docs/ai-and-skill.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Animate Unity UI Toolkit with AI: the Cascade agent skill and JSON sequences">
+<meta property="og:description" content="Let Claude Code, Cursor, Codex or Copilot write Unity UI Toolkit animations with Cascade. Install the open agent skill, use the AI guide that ships in the package, and generate validated JSON animation sequences.">
+<meta property="og:url" content="https://twitchedd.github.io/cascade/docs/ai-and-skill.html">
+<meta property="og:image" content="https://twitchedd.github.io/img/cover.png">
+<link rel="icon" href="../../img/avatar.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="docs.css">
+<script src="search.js" defer></script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "TechArticle",
+ "headline": "Animate Unity UI Toolkit with AI: the Cascade agent skill and JSON sequences",
+ "description": "Let Claude Code, Cursor, Codex or Copilot write Unity UI Toolkit animations with Cascade. Install the open agent skill, use the AI guide that ships in the package, and generate validated JSON animation sequences.",
+ "url": "https://twitchedd.github.io/cascade/docs/ai-and-skill.html",
+ "author": {
+  "@type": "Organization",
+  "name": "twitched",
+  "url": "https://twitchedd.github.io/"
+ },
+ "about": {
+  "@type": "SoftwareApplication",
+  "name": "Cascade",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Unity 6000.0 or later",
+  "description": "Animation library for Unity UI Toolkit: tweens, springs, stagger and transitions.",
+  "offers": [
+   {
+    "@type": "Offer",
+    "name": "Cascade Lite",
+    "price": "0",
+    "priceCurrency": "USD",
+    "url": "https://assetstore.unity.com/packages/slug/394764"
+   },
+   {
+    "@type": "Offer",
+    "name": "Cascade Pro",
+    "url": "https://assetstore.unity.com/packages/slug/394760"
+   }
+  ]
+ }
+}
+</script>
+</head>
+<body>
+<div class="layout">
+<nav class="side" aria-label="Cascade docs">
+  <a class="home" href="../../">twitched<span>_</span></a>
+  <div class="search" role="search">
+    <input id="q" type="search" placeholder="Search docs  /" aria-label="Search the docs" autocomplete="off" spellcheck="false">
+    <ul id="results" role="listbox" hidden></ul>
+  </div>
+  <p class="group">Start</p>
+  <ul>
+    <li><a href="index.html">Overview</a></li>
+    <li><a href="getting-started.html">Getting started</a></li>
+  </ul>
+  <p class="group">Guides</p>
+  <ul>
+    <li><a href="animate-visualelement.html">Animate a VisualElement</a></li>
+    <li><a href="spring-animation.html">Spring animation</a></li>
+    <li><a href="stagger-list.html">Stagger a list</a></li>
+    <li><a href="transitions.html">Transitions</a></li>
+    <li><a href="recipes.html">Recipes</a></li>
+    <li><a href="no-code.html">No-code: UI Animator</a></li>
+    <li><a href="effects.html">Shadow, glow and filters</a></li>
+    <li><a href="framer-motion.html">Coming from Framer Motion</a></li>
+    <li><a href="performance.html">Performance and lifecycle</a></li>
+    <li><a href="ai-and-skill.html" aria-current="page">AI assistants and skill</a></li>
+  </ul>
+  <p class="group">Reference</p>
+  <ul>
+    <li><a href="easing.html">Easing curves</a></li>
+    <li><a href="api.html">API reference</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+  <p class="group">Get it</p>
+  <ul>
+    <li><a href="https://assetstore.unity.com/packages/slug/394764">Cascade Lite (free)</a></li>
+    <li><a href="https://assetstore.unity.com/packages/slug/394760">Cascade Pro</a></li>
+  </ul>
+</nav>
+<main class="doc">
+<article>
+<h1>AI assistants and the agent skill</h1>
+<p class="lede">Cascade is built to be written by AI coding assistants as well as people. The API is
+small and regular, the package ships a guide written for assistants, and Pro can play animations
+described as validated JSON.</p>
+
+<h2 id="install-the-cascade-agent-skill">Install the Cascade agent skill</h2>
+<p>The skill teaches a coding agent how to use Cascade: which calls exist, the mistakes to avoid, and
+how to check its own output. It works with Claude Code, Cursor, Codex, GitHub Copilot and any agent that
+reads <code>SKILL.md</code> files.</p>
+<pre><code class="sh">npx skills add twitchedd/cascade-skill</code></pre>
+<p>Or copy <code>skills/cascade/</code> from the repository into your agent's skills folder (for Claude
+Code: <code>.claude/skills/cascade/</code>).</p>
+<p><a class="cta" href="https://github.com/twitchedd/cascade-skill">Skill on GitHub</a>
+<a class="cta" href="https://www.skills.sh/twitchedd/cascade-skill">Skill on skills.sh</a></p>
+
+<h3 id="it-writes-code-for-your-tier">It writes code for your tier</h3>
+<p>The skill first checks <code>Packages/manifest.json</code> to see whether the project has Cascade
+Lite or Cascade Pro, and writes only code that tier can compile. Ask a Lite project for a bouncy spring and
+it says springs are in Pro and offers the closest Lite version, an <code>Ease.OutBack</code> overshoot.</p>
+
+<h3 id="things-to-ask-it">Things to ask it</h3>
+<ul>
+<li>"Make the settings panel slide up and fade in when it opens."</li>
+<li>"Stagger the inventory slots in from the right."</li>
+<li>"Make this button pop when pressed."</li>
+<li>"Shake the gold counter when the player can't afford an item."</li>
+<li>"Respect reduced motion in all our menu animations."</li>
+</ul>
+
+<h2 id="the-ai-guide-inside-the-package">The AI guide inside the package</h2>
+<p>Both tiers ship <code>Documentation~/AI-GUIDE.md</code>, written for assistants: every verb, the
+easing names, the rules that prevent the common mistakes, and examples from intent to code. Because it
+comes with the package, it always matches the version you have installed. The skill reads it when it
+exists. Without the skill, point your assistant at it:</p>
+<pre><code class="text">Read Packages/com.twitched.cascade.lite/Documentation~/AI-GUIDE.md,
+then fade the shop panel in when it opens.</code></pre>
+<p>(For Pro the folder is <code>Packages/com.twitched.cascade/</code>.)</p>
+
+<h3 id="the-rule-assistants-most-often-miss">The rule assistants most often miss</h3>
+<p>Every verb animates <em>to</em> a value, starting from the element's current value. "Fade in" on an
+element that is already visible animates from 1 to 1, and nothing happens. Entrances must state where
+they start:</p>
+<pre><code class="cs">panel.<span class="k">Animate</span>().<span class="k">Fade</span>(<span class="n">1f</span>, <span class="n">0.3f</span>).<span class="k">From</span>(<span class="n">0f</span>).<span class="k">Ease</span>(Ease.OutCubic);   <span class="c">// not just Fade(1f, 0.3f)</span></code></pre>
+<p>The guide and the skill both teach this, and Pro's linter (below) catches it.</p>
+
+<h2 id="json-animation-sequences-pro">JSON animation sequences <span class="tier pro">Pro</span></h2>
+<p>For self-contained effects such as an entrance, a shake or a pulse, an assistant can describe the
+animation as JSON instead of code. JSON is constrained and checked before it runs, so a mistake produces
+a precise error instead of code that fails to compile.</p>
+<pre><code class="json">{ "steps": [ { "actions": [
+  { "verb": "SlideIn", "edge": "Bottom", "distance": 40, "duration": 0.4, "ease": "OutCubic" },
+  { "verb": "Fade", "from": 0, "to": 1, "duration": 0.4, "ease": "OutCubic" }
+] } ] }</code></pre>
+<p>Steps run one after another; the actions inside a step run together. Durations are in seconds.</p>
+<pre><code class="cs">using Cascade;
+
+SequencePreset.<span class="k">PlayJson</span>(panel, json);                                   <span class="c">// parse and play</span>
+
+if (SequencePreset.<span class="k">TryFromJson</span>(json, out var preset, out string error))  <span class="c">// or check first</span>
+    preset.<span class="k">Play</span>(panel);
+else
+    Debug.<span class="k">LogWarning</span>(error);   <span class="c">// e.g. "step 0, action 1: verb 'Fade' requires a numeric "to""</span></code></pre>
+
+<h3 id="let-the-assistant-fix-its-own-output">Let the assistant fix its own output</h3>
+<p>Errors name the exact step, action and field, and suggest the closest valid name for a typo, so an
+assistant can correct the JSON and try again:</p>
+<pre><code class="cs">MotionError err = SequencePreset.<span class="k">Validate</span>(json);
+if (err.IsError)
+{
+    <span class="c">// err.Code: UnknownVerb, MissingField, OutOfRange, ...</span>
+    <span class="c">// err.Path: "steps[0].actions[1].to"</span>
+    <span class="c">// err.Suggestion: "Fade" for a misspelled verb, otherwise null</span>
+}
+
+foreach (var advice in SequencePreset.<span class="k">Lint</span>(json))   <span class="c">// valid, but would do nothing</span>
+    Debug.<span class="k">Log</span>(advice);                             <span class="c">// e.g. a fade-in without "from"</span></code></pre>
+<p><code>Validate</code> answers "will this run". <code>Lint</code> answers "will this do what was meant",
+for example a fade-in on an element that is already visible.</p>
+<p>The full format is in a JSON Schema you can give to a model or a validator:
+<a href="cascade-sequence.schema.json">cascade-sequence.schema.json</a>.</p>
+
+<h3 id="from-json-to-the-inspector">From JSON to the inspector</h3>
+<p>A generated sequence can be saved as a preset asset, and designers pick it in the
+<strong>UI Animator</strong> component's rules without writing code. The <code>Documentation~</code>
+folder includes <code>PROMPTS.md</code>, a set of ready-made intents with their JSON.</p>
+
+<h2 id="for-ai-search-and-crawlers">For AI search and crawlers</h2>
+<p>This site publishes <a href="../../llms.txt">llms.txt</a>, a plain-text index of these docs for
+language models and AI search tools.</p>
+</article>
+<nav class="pager" aria-label="Next and previous page"><a href="performance.html">← Performance and lifecycle</a><a href="easing.html">Easing curves →</a></nav>
+</main>
+</div>
+<footer>twitched · Cascade, the animation library for Unity UI Toolkit · <a href="../../">twitchedd.github.io</a></footer>
+</body>
+</html>

@@ -1,0 +1,60 @@
+order: 4
+group: Guides
+label: Stagger a list
+title: Stagger animation in Unity UI Toolkit: animate list items one after another
+description: Animate a UI Toolkit list or menu so items enter one after another. Cascade's AnimateEach and Stagger, how to choose the step, and how to schedule what comes after a staggered group.
+---
+<h1>Stagger a list <span class="tier pro">Pro</span></h1>
+<p class="lede">A stagger plays the same animation on each item of a list, each one starting a little
+later than the one before. It makes a menu or a list of results read as one movement instead of a block
+appearing at once.</p>
+
+<pre><code class="cs">using Cascade;
+using System.Linq;
+
+var items = listRoot.Query&lt;VisualElement&gt;(className: "row").ToList();
+
+items.AnimateEach()
+     .SlideIn(Edge.Right, 0.35f).Ease(Ease.OutCubic)
+     .Fade(1f, 0.35f).From(0f)
+     .Stagger(0.06f);              // item i starts i × 0.06 s after the first</code></pre>
+<p><code>AnimateEach()</code> works on any list of <code>VisualElement</code>s, so the result of a UQuery
+works directly.</p>
+<p>Write <code>From(0f)</code> on the fade. Each item starts from its own value when its turn comes, and
+an item that is already visible has nothing to fade. <code>From</code> also hides the later items right
+away, so they don't flash before their turn.</p>
+
+<h2>Choosing the step</h2>
+<ul>
+<li><strong>0.04–0.08 s</strong> per item works for most menus and lists.</li>
+<li>Above about <strong>0.1 s</strong> a long list starts to feel slow.</li>
+<li>The whole group takes <code>duration + (count − 1) × step</code>, so it grows with the list.</li>
+</ul>
+<p>For lists whose length changes, fix the total time instead of the step:</p>
+<pre><code class="cs">// spread the whole list over 0.4 s, but never more than 0.06 s between items
+float step = Stagger.StepForSpan(items.Count, 0.4f, 0.06f);
+items.AnimateEach().Fade(1f, 0.3f).From(0f).Stagger(step);</code></pre>
+
+<h2>Start something after the list</h2>
+<pre><code class="cs">float total = Stagger.TotalDuration(items.Count, 0.35f, 0.06f);
+footer.Animate().Fade(1f, 0.25f).From(0f).Delay(total);</code></pre>
+
+<h2>Replaying the list</h2>
+<p>When the list is shown again, stop what is still running on the items first, so a quick re-open
+starts cleanly:</p>
+<pre><code class="cs">foreach (var item in items) item.StopAnimations();
+items.AnimateEach().SlideIn(Edge.Right, 0.35f).Ease(Ease.OutCubic).Fade(1f, 0.35f).From(0f).Stagger(0.06f);</code></pre>
+
+<h2>Staggering with Cascade Lite</h2>
+<p>Lite has no <code>AnimateEach</code>, but it has <code>Delay</code>. A loop gives the same result for
+a short list:</p>
+<pre><code class="cs">for (int i = 0; i &lt; items.Count; i++)
+{
+    items[i].Animate()
+        .Fade(1f, 0.3f).From(0f).Delay(i * 0.06f)
+        .SlideIn(Edge.Right, 0.3f).Ease(Ease.OutCubic).Delay(i * 0.06f);
+}</code></pre>
+<p>Pro's <code>AnimateEach</code> adds the timing helpers above, works with springs, and handles
+replays and cancelling for the whole group.</p>
+<p><a class="cta" href="https://assetstore.unity.com/packages/slug/394760">Get Cascade Pro</a>
+<a class="cta" href="https://assetstore.unity.com/packages/slug/394764">Get Cascade Lite (free)</a></p>

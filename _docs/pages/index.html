@@ -1,0 +1,67 @@
+order: 0
+group: Start
+label: Overview
+title: Cascade docs: the animation library for Unity UI Toolkit
+description: Documentation for Cascade, a runtime animation library for Unity UI Toolkit (UIElements, UXML/USS): tweens, easing, springs, stagger, enter/exit and screen transitions. Free Lite tier, MIT licensed.
+---
+<h1>Cascade docs</h1>
+<p class="lede">Cascade is an animation library for Unity UI Toolkit. It animates any
+<code>VisualElement</code> at runtime with one line of C#: fades, moves, scales, colors, sizes, springs,
+staggered lists and screen transitions.</p>
+<p>It works with UXML/USS and UI Toolkit (UIElements) in Unity 6000.0 and later. It has no third-party
+dependencies and allocates nothing per frame. It doesn't support uGUI (Canvas).</p>
+
+<pre><code class="cs">using Cascade;
+
+panel.Animate()
+     .Fade(1f, 0.3f).From(0f).Ease(Ease.OutCubic)
+     .MoveY(0f, 0.3f).From(24f).Ease(Ease.OutCubic);   // both run together</code></pre>
+
+<h2>Lite and Pro</h2>
+<p>Cascade comes in two tiers. Lite is free and MIT licensed, and covers the tween engine. Pro is a
+superset: it includes everything in Lite and adds the parts that are hard to write yourself.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Feature</th><th>Lite (free)</th><th>Pro</th></tr></thead>
+<tbody>
+<tr><td>Fade, move, scale, rotate, colors, width/height, top/left</td><td>yes</td><td>yes</td></tr>
+<tr><td>Full easing set and <code>AnimationCurve</code> easing</td><td>yes</td><td>yes</td></tr>
+<tr><td>Sequencing (<code>Then</code>), delays, loops, pause/resume/cancel</td><td>yes</td><td>yes</td></tr>
+<tr><td><code>await</code> any animation</td><td>yes</td><td>yes</td></tr>
+<tr><td>Reduced-motion setting</td><td>yes</td><td>yes</td></tr>
+<tr><td>Physics springs that keep momentum when interrupted</td><td>no</td><td>yes</td></tr>
+<tr><td>Stagger across a list of elements</td><td>no</td><td>yes</td></tr>
+<tr><td>Enter/exit and screen transitions (<code>Show</code>, <code>Hide</code>, <code>SwapTo</code>)</td><td>no</td><td>yes</td></tr>
+<tr><td>Hover, press and focus animations</td><td>no</td><td>yes</td></tr>
+<tr><td>Named states (variants)</td><td>no</td><td>yes</td></tr>
+<tr><td>No-code UI Animator component with live preview in edit mode</td><td>no</td><td>yes</td></tr>
+<tr><td>Drop shadow and glow elements</td><td>no</td><td>yes</td></tr>
+</tbody></table></div>
+<p>Each page marks Pro-only code with <span class="tier pro">Pro</span>. Everything else works in both.</p>
+<p><a class="cta" href="https://assetstore.unity.com/packages/slug/394764">Get Cascade Lite (free)</a>
+<a class="cta" href="https://assetstore.unity.com/packages/slug/394760">Get Cascade Pro</a></p>
+
+<h2>Start</h2>
+<ul>
+<li><a href="getting-started.html"><strong>Getting started</strong></a>: install, open the demo, write your first animation.</li>
+<li><a href="animate-visualelement.html"><strong>How to animate a UI Toolkit VisualElement</strong></a>: the built-in options and when a library helps.</li>
+</ul>
+<h2>Guides</h2>
+<ul>
+<li><a href="spring-animation.html"><strong>Spring animation</strong></a>: presets, custom springs, interruptions that keep momentum.</li>
+<li><a href="stagger-list.html"><strong>Stagger a list</strong></a>: menus and lists that come in one item at a time.</li>
+<li><a href="transitions.html"><strong>Enter, exit and screen transitions</strong></a>: toasts, modals, tabs and screen swaps.</li>
+<li><a href="recipes.html"><strong>Recipes</strong></a>: hover and press, accordions, named states, async flows, loops, reduced motion, common mistakes.</li>
+<li><a href="no-code.html"><strong>No-code: UI Animator</strong></a>: add motion from the Inspector, with live preview.</li>
+<li><a href="effects.html"><strong>Shadow, glow and filters</strong></a>: drop shadows and glows, animated blur and tint.</li>
+<li><a href="framer-motion.html"><strong>Coming from Framer Motion</strong></a>: every concept mapped.</li>
+<li><a href="performance.html"><strong>Performance and lifecycle</strong></a>: what runs each frame, what it costs, and when animations stop.</li>
+<li><a href="ai-and-skill.html"><strong>AI assistants and the agent skill</strong></a>: let your coding assistant write Cascade code.</li>
+</ul>
+<h2>Reference</h2>
+<ul>
+<li><a href="easing.html"><strong>Easing curves</strong></a>: all 28 curves, drawn.</li>
+<li><a href="api.html"><strong>API reference</strong></a>: every public type and method, Lite and Pro marked.</li>
+<li><a href="faq.html"><strong>FAQ</strong></a>.</li>
+</ul>
+<p>The same guides ship inside the package under <code>Documentation~</code>, with an AI authoring guide
+for assistants that write Cascade code.</p>

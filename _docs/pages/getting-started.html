@@ -1,0 +1,107 @@
+order: 1
+group: Start
+label: Getting started
+title: Getting started with Cascade: animate Unity UI Toolkit in one line
+description: Install Cascade from the Unity Asset Store, open the demo scene, and write your first UI Toolkit animation: fade, move, sequence, cancel and await a VisualElement animation.
+---
+<h1>Getting started</h1>
+<p class="lede">Install the package, open the demo to see every feature running, then animate your
+first element.</p>
+
+<h2>1. Install</h2>
+<ol>
+<li>Add Cascade Lite (free) or Cascade Pro to your assets on the Unity Asset Store.</li>
+<li>In Unity, open <strong>Window ▸ Package Manager</strong> and select <strong>My Assets</strong>.</li>
+<li>Find Cascade and install it into your project.</li>
+</ol>
+<p>Cascade needs Unity 6000.0 or later and runs on UI Toolkit only.</p>
+<div class="note"><strong>Install one tier, not both.</strong> Pro already contains everything in Lite.
+If you upgrade from Lite, remove Lite first.</div>
+
+<div class="note"><strong>Using a coding agent?</strong> Claude Code, Cursor, Codex and Copilot can
+write Cascade code for you. Install the Cascade skill once:
+<pre><code class="sh">npx skills add twitchedd/cascade-skill</code></pre>
+Then ask in plain words, for example "make the settings panel slide up and fade in when it opens".
+The skill checks whether you have Lite or Pro and writes only code your tier can compile.
+More in <a href="ai-and-skill.html">AI assistants and the agent skill</a>.</div>
+
+<h2>2. Open the demo</h2>
+<p>The demo is the fastest way to see what Cascade does. Every section shows an animation next to the code
+that makes it.</p>
+<ol>
+<li>In the Package Manager, select Cascade and open the <strong>Samples</strong> tab.</li>
+<li>Click <strong>Import</strong> next to the demo (<em>Demo - Lite Gallery</em> in Lite,
+<em>Demo - Motion Gallery</em> in Pro).</li>
+<li>Open the scene in <code>Assets/Samples/</code> and press Play.</li>
+</ol>
+
+<h2>3. Animate an element</h2>
+<p>Add <code>using Cascade;</code> and call <code>Animate()</code> on any <code>VisualElement</code>.
+Durations are in seconds.</p>
+<pre><code class="cs">using Cascade;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+public class Intro : MonoBehaviour
+{
+    void OnEnable()
+    {
+        var root = GetComponent&lt;UIDocument&gt;().rootVisualElement;
+        var card = root.Q("card");
+
+        card.Animate()
+            .Fade(1f, 0.3f).From(0f).Ease(Ease.OutCubic)
+            .Then()
+            .MoveY(0f, 0.4f).From(24f).Ease(Ease.OutBack);
+    }
+}</code></pre>
+<p>Verbs in the same step run <strong>together</strong>. <code>Then()</code> starts the next step after
+the current one finishes.</p>
+<p><code>From(v)</code> sets where a verb starts. Without it, Cascade starts from the element's current
+value, so a card that is already visible has nothing to fade.</p>
+
+<h2>4. Control it</h2>
+<p><code>Animate()</code> returns a handle you can keep:</p>
+<pre><code class="cs">var pulse = badge.Animate().ScaleTo(1.15f, 0.5f).Ease(Ease.InOutSine).Loop(LoopMode.PingPong, 0); // 0 = forever
+
+pulse.Pause();
+pulse.Resume();
+pulse.Cancel();          // stops where it is
+badge.StopAnimations();  // stops everything on this element</code></pre>
+<p>Cancelling leaves the element where it is and does not call <code>OnComplete</code>. An animation that
+finishes on its own snaps to its target and calls <code>OnComplete</code>. Animations also cancel
+themselves when the element leaves the panel, so nothing writes to a closed screen.</p>
+
+<h2>5. Run code when it ends</h2>
+<pre><code class="cs">row.Animate().Fade(1f, 0.3f).OnSettled(completed =&gt; PaintSelection());</code></pre>
+<p>Use <code>OnSettled</code> for anything the player must see. It runs whether the animation finished or
+was cancelled. <code>OnComplete</code> doesn't run when a new animation replaces this one halfway, which
+happens whenever the player clicks quickly.</p>
+<p>Or <code>await</code> it. The result is <code>true</code> when it finished and <code>false</code> when
+it was cancelled:</p>
+<pre><code class="cs">async void PlayIntro()
+{
+    if (!await title.Animate().Fade(1f, 0.4f).From(0f)) return;   // the screen closed: stop
+    await subtitle.Animate().MoveY(0f, 0.35f).From(20f).Ease(Ease.OutCubic);
+}</code></pre>
+
+<h2>What each verb animates</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Verb</th><th>Animates</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code>Fade</code></td><td>opacity</td><td>0 to 1</td></tr>
+<tr><td><code>MoveX</code>, <code>MoveY</code>, <code>MoveTo</code></td><td>translate</td><td>pixels; no layout cost</td></tr>
+<tr><td><code>NudgeX</code>, <code>NudgeY</code></td><td>translate, additive</td><td>adds to a move that is already running</td></tr>
+<tr><td><code>ScaleTo</code></td><td>scale</td><td>a multiplier; scales around <code>transform-origin</code></td></tr>
+<tr><td><code>Rotate</code></td><td>rotate</td><td>degrees</td></tr>
+<tr><td><code>SlideIn</code></td><td>translate from an edge</td><td><code>Edge.Top</code>, <code>Bottom</code>, <code>Left</code>, <code>Right</code></td></tr>
+<tr><td><code>BackgroundColor</code>, <code>TextColor</code></td><td>colors</td><td></td></tr>
+<tr><td><code>Width</code>, <code>Height</code>, <code>Size</code>, <code>Top</code>, <code>Left</code></td><td>layout</td><td>re-runs layout each frame; use for accordions, not for many elements</td></tr>
+<tr><td><code>Value</code></td><td>any float you choose</td><td>for counters, progress bars, custom properties</td></tr>
+</tbody></table></div>
+
+<h2>Next</h2>
+<ul>
+<li><a href="animate-visualelement.html">How to animate a UI Toolkit VisualElement</a>: how this compares with USS transitions and the scheduler.</li>
+<li><a href="recipes.html">Recipes</a>: copy-and-paste patterns for common UI.</li>
+</ul>

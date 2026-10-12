@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Enter, exit and screen transitions in Unity UI Toolkit</title>
+<meta name="description" content="Show and hide UI Toolkit panels with animated enter and exit transitions, and swap screens with a crossfade: toasts, modal dialogs, tabs and menus with Cascade&#x27;s Show, Hide and SwapTo.">
+<link rel="canonical" href="https://twitchedd.github.io/cascade/docs/transitions.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Enter, exit and screen transitions in Unity UI Toolkit">
+<meta property="og:description" content="Show and hide UI Toolkit panels with animated enter and exit transitions, and swap screens with a crossfade: toasts, modal dialogs, tabs and menus with Cascade&#x27;s Show, Hide and SwapTo.">
+<meta property="og:url" content="https://twitchedd.github.io/cascade/docs/transitions.html">
+<meta property="og:image" content="https://twitchedd.github.io/img/cover.png">
+<link rel="icon" href="../../img/avatar.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="docs.css">
+<script src="search.js" defer></script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "TechArticle",
+ "headline": "Enter, exit and screen transitions in Unity UI Toolkit",
+ "description": "Show and hide UI Toolkit panels with animated enter and exit transitions, and swap screens with a crossfade: toasts, modal dialogs, tabs and menus with Cascade's Show, Hide and SwapTo.",
+ "url": "https://twitchedd.github.io/cascade/docs/transitions.html",
+ "author": {
+  "@type": "Organization",
+  "name": "twitched",
+  "url": "https://twitchedd.github.io/"
+ },
+ "about": {
+  "@type": "SoftwareApplication",
+  "name": "Cascade",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Unity 6000.0 or later",
+  "description": "Animation library for Unity UI Toolkit: tweens, springs, stagger and transitions.",
+  "offers": [
+   {
+    "@type": "Offer",
+    "name": "Cascade Lite",
+    "price": "0",
+    "priceCurrency": "USD",
+    "url": "https://assetstore.unity.com/packages/slug/394764"
+   },
+   {
+    "@type": "Offer",
+    "name": "Cascade Pro",
+    "url": "https://assetstore.unity.com/packages/slug/394760"
+   }
+  ]
+ }
+}
+</script>
+</head>
+<body>
+<div class="layout">
+<nav class="side" aria-label="Cascade docs">
+  <a class="home" href="../../">twitched<span>_</span></a>
+  <div class="search" role="search">
+    <input id="q" type="search" placeholder="Search docs  /" aria-label="Search the docs" autocomplete="off" spellcheck="false">
+    <ul id="results" role="listbox" hidden></ul>
+  </div>
+  <p class="group">Start</p>
+  <ul>
+    <li><a href="index.html">Overview</a></li>
+    <li><a href="getting-started.html">Getting started</a></li>
+  </ul>
+  <p class="group">Guides</p>
+  <ul>
+    <li><a href="animate-visualelement.html">Animate a VisualElement</a></li>
+    <li><a href="spring-animation.html">Spring animation</a></li>
+    <li><a href="stagger-list.html">Stagger a list</a></li>
+    <li><a href="transitions.html" aria-current="page">Transitions</a></li>
+    <li><a href="recipes.html">Recipes</a></li>
+    <li><a href="no-code.html">No-code: UI Animator</a></li>
+    <li><a href="effects.html">Shadow, glow and filters</a></li>
+    <li><a href="framer-motion.html">Coming from Framer Motion</a></li>
+    <li><a href="performance.html">Performance and lifecycle</a></li>
+    <li><a href="ai-and-skill.html">AI assistants and skill</a></li>
+  </ul>
+  <p class="group">Reference</p>
+  <ul>
+    <li><a href="easing.html">Easing curves</a></li>
+    <li><a href="api.html">API reference</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+  <p class="group">Get it</p>
+  <ul>
+    <li><a href="https://assetstore.unity.com/packages/slug/394764">Cascade Lite (free)</a></li>
+    <li><a href="https://assetstore.unity.com/packages/slug/394760">Cascade Pro</a></li>
+  </ul>
+</nav>
+<main class="doc">
+<article>
+<h1>Enter, exit and screen transitions <span class="tier pro">Pro</span></h1>
+<p class="lede">An enter/exit transition animates an element as it appears and disappears. The tricky
+part in UI Toolkit is <code>display</code>: an element must be <code>display: flex</code> before it can
+animate in, and should become <code>display: none</code> only after it has animated out, or it keeps
+taking space and catching clicks.</p>
+<p>Cascade Pro's <code>Show</code> and <code>Hide</code> handle that order for you.</p>
+
+<pre><code class="cs">using Cascade;
+
+panel.<span class="k">Show</span>(Transition.<span class="k">SlideFade</span>(Edge.Bottom, <span class="n">0.35f</span>));   <span class="c">// display: flex, then animate in</span>
+panel.<span class="k">Hide</span>(Transition.<span class="k">ScaleFade</span>(<span class="n">0.25f</span>));                <span class="c">// animate out, then display: none</span></code></pre>
+
+<h2 id="built-in-transitions">Built-in transitions</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Transition</th><th>Looks like</th></tr></thead>
+<tbody>
+<tr><td><code>Transition.Fade(d)</code></td><td>opacity only</td></tr>
+<tr><td><code>Transition.Slide(edge, d)</code></td><td>moves in from an edge</td></tr>
+<tr><td><code>Transition.SlideFade(edge, d)</code></td><td>moves and fades; the usual choice for panels and toasts</td></tr>
+<tr><td><code>Transition.Scale(d)</code></td><td>grows from 85%</td></tr>
+<tr><td><code>Transition.ScaleFade(d)</code></td><td>grows and fades; the usual choice for dialogs</td></tr>
+<tr><td><code>Transition.Crossfade(d)</code></td><td>a fade, used for swapping screens</td></tr>
+</tbody></table></div>
+<p>Add <code>.WithEase(...)</code> to any of them, for example <code>Transition.ScaleFade(0.28f).WithEase(Ease.OutBack)</code>.</p>
+
+<h2 id="toast-slide-in-dismiss-itself">Toast: slide in, dismiss itself</h2>
+<pre><code class="cs">void ShowToast()
+{
+    toast.<span class="k">StopAnimations</span>();   <span class="c">// a second click restarts it cleanly</span>
+    toast.<span class="k">Show</span>(Transition.<span class="k">SlideFade</span>(Edge.Top, <span class="n">0.3f</span>).<span class="k">WithEase</span>(Ease.OutCubic));
+    toast.schedule.<span class="k">Execute</span>(HideToast).<span class="k">ExecuteLater</span>(<span class="n">1900</span>);
+}
+
+void HideToast()
+{
+    if (toast.resolvedStyle.display == DisplayStyle.None) return;
+    toast.<span class="k">Hide</span>(Transition.<span class="k">SlideFade</span>(Edge.Top, <span class="n">0.25f</span>).<span class="k">WithEase</span>(Ease.InCubic));
+}</code></pre>
+<p>Ease out on the way in and ease in on the way out. Accelerating away reads as "dismissed".</p>
+
+<h2 id="modal-dialog-with-a-dimmed-backdrop">Modal dialog with a dimmed backdrop</h2>
+<pre><code class="cs">void OpenModal()
+{
+    modalOpen = true;
+    modalRoot.style.display = DisplayStyle.Flex;
+    backdrop.<span class="k">Show</span>(Transition.<span class="k">Fade</span>(<span class="n">0.2f</span>));
+    dialog.<span class="k">Show</span>(Transition.<span class="k">ScaleFade</span>(<span class="n">0.28f</span>).<span class="k">WithEase</span>(Ease.OutBack));
+}
+
+void CloseModal()
+{
+    modalOpen = false;
+    backdrop.<span class="k">Hide</span>(Transition.<span class="k">Fade</span>(<span class="n">0.18f</span>));
+    dialog.<span class="k">Hide</span>(Transition.<span class="k">ScaleFade</span>(<span class="n">0.2f</span>));
+    <span class="c">// hide the container after the children finish, unless the modal was re-opened meanwhile</span>
+    modalRoot.schedule.<span class="k">Execute</span>(() =&gt; { if (!modalOpen) modalRoot.style.display = DisplayStyle.None; })
+             .<span class="k">ExecuteLater</span>(<span class="n">240</span>);
+}</code></pre>
+<p>Keep the backdrop on a plain fade and give the overshoot to the dialog, so only one thing draws the eye.</p>
+
+<h2 id="swap-screens">Swap screens</h2>
+<pre><code class="cs">screens.<span class="k">SwapTo</span>(settingsScreen, Transition.<span class="k">Crossfade</span>(<span class="n">0.3f</span>));</code></pre>
+<p><code>SwapTo</code> animates the current child of <code>screens</code> out (ending at
+<code>display: none</code>) and the new one in. Both screens must already be children of
+<code>screens</code>.</p>
+
+<h2 id="tabs-with-a-sliding-underline">Tabs with a sliding underline</h2>
+<pre><code class="cs">void SwitchTab(int i)
+{
+    if (i == current) return;                        <span class="c">// clicking the open tab does nothing</span>
+    pages[current].<span class="k">Hide</span>(Transition.<span class="k">Fade</span>(<span class="n">0.16f</span>));     <span class="c">// out a little faster than in</span>
+    pages[i].<span class="k">Show</span>(Transition.<span class="k">Fade</span>(<span class="n">0.22f</span>));
+
+    indicator.<span class="k">Animate</span>().<span class="k">MoveX</span>(tabs[i].layout.x, <span class="n">0.28f</span>).<span class="k">Ease</span>(Ease.OutCubic);
+    indicator.<span class="k">Animate</span>().<span class="k">Width</span>(tabs[i].layout.width, <span class="n">0.28f</span>).<span class="k">Ease</span>(Ease.OutCubic);
+    current = i;
+}</code></pre>
+<p>Read <code>layout</code> only after the first layout pass, for example in a
+<code>GeometryChangedEvent</code> callback. Before that it returns zeros.</p>
+
+<h2 id="show-hide-or-animatein-animateout">Show/Hide or AnimateIn/AnimateOut?</h2>
+<p><code>AnimateIn</code> and <code>AnimateOut</code> play the same transitions but don't touch
+<code>display</code>. Use them when you manage visibility yourself. Anything that opens and closes
+repeatedly should use <code>Show</code> and <code>Hide</code>: an element left at
+<code>display: none</code> by a previous <code>Hide</code> stays invisible under <code>AnimateIn</code>.</p>
+
+<h2 id="with-cascade-lite">With Cascade Lite</h2>
+<p>Lite has no <code>Show</code>/<code>Hide</code>, but the same effect takes a few lines:</p>
+<pre><code class="cs"><span class="c">// in</span>
+panel.style.display = DisplayStyle.Flex;
+panel.<span class="k">Animate</span>().<span class="k">SlideIn</span>(Edge.Bottom, <span class="n">0.35f</span>).<span class="k">Ease</span>(Ease.OutCubic).<span class="k">Fade</span>(<span class="n">1f</span>, <span class="n">0.35f</span>).<span class="k">From</span>(<span class="n">0f</span>);
+
+<span class="c">// out</span>
+panel.<span class="k">Animate</span>().<span class="k">Fade</span>(<span class="n">0f</span>, <span class="n">0.25f</span>).<span class="k">Ease</span>(Ease.InCubic)
+     .<span class="k">OnSettled</span>(done =&gt; { if (done) panel.style.display = DisplayStyle.None; });
+<span class="c">// "done" is false when a new animation replaced this one, e.g. the panel was opened again</span></code></pre>
+<p><a class="cta" href="https://assetstore.unity.com/packages/slug/394760">Get Cascade Pro</a>
+<a class="cta" href="https://assetstore.unity.com/packages/slug/394764">Get Cascade Lite (free)</a></p>
+</article>
+<nav class="pager" aria-label="Next and previous page"><a href="stagger-list.html">← Stagger a list</a><a href="recipes.html">Recipes →</a></nav>
+</main>
+</div>
+<footer>twitched · Cascade, the animation library for Unity UI Toolkit · <a href="../../">twitchedd.github.io</a></footer>
+</body>
+</html>

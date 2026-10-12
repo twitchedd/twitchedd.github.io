@@ -1,0 +1,42 @@
+order: 8
+group: Guides
+label: Shadow, glow and filters
+title: Drop shadow and glow in Unity UI Toolkit, and animated blur and tint
+description: Add a soft drop shadow or outer glow to a Unity UI Toolkit element with Cascade's mesh-based DropShadowElement, and animate USS filter blur and tint on Unity 6.3 and later.
+---
+<h1>Shadow, glow and filters <span class="tier pro">Pro</span></h1>
+<p class="lede">UI Toolkit has no box-shadow. Cascade Pro adds a drop shadow and glow element drawn with a
+mesh, and on Unity 6.3 and later it animates the USS <code>filter</code> blur and tint.</p>
+
+<h2>Drop shadow</h2>
+<p><code>DropShadowElement</code> draws a soft shadow behind its children. Put the element you want shadowed
+inside it.</p>
+<pre><code class="cs">using Cascade;
+
+var shadow = new DropShadowElement
+{
+    shadowColor = new Color(0f, 0f, 0f, 0.5f),
+    blur = 22f,      // how far the edge fades, in pixels
+    spread = 2f,     // grows the shadow before the fade
+    offsetY = 12f,   // pushes it down, like light from above
+};
+shadow.style.width = 110;
+shadow.style.height = 90;
+shadow.Add(card);</code></pre>
+<p>It is also a UXML element, so you can add it to a layout in UI Builder and set its color, blur, spread and offsets there.</p>
+
+<h2>Glow</h2>
+<p>A glow is the same element with no offset and a bright color:</p>
+<pre><code class="cs">var glow = new DropShadowElement { shadowColor = new Color(1f, 0.6f, 0.2f, 0.8f), blur = 18f, spread = 4f, offsetY = 0f };
+glow.Add(rewardIcon);</code></pre>
+<p>It's mesh-drawn: no shaders and any render pipeline. Each one costs an extra draw, which is fine for a
+few hero cards and buttons, not for every row of a long list.</p>
+
+<h2>Animated blur and tint (Unity 6.3+)</h2>
+<p>Unity 6.3 added a <code>filter</code> property to UI Toolkit. Cascade animates two of its functions as
+verbs:</p>
+<pre><code class="cs">background.Animate().BlurTo(8f, 0.3f).Ease(Ease.OutCubic);              // blur radius in pixels
+icon.Animate().TintTo(new Color(1f, 0.4f, 0.4f), 0.2f);                 // flash red</code></pre>
+<p>Other filter functions already on the element are kept. A filter re-renders the element every frame
+it animates, so measure it on your target devices. On Unity versions before 6.3 these verbs compile and
+do nothing, with a single console warning, so shared code stays portable.</p>

@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spring animation in Unity UI Toolkit (physics springs for VisualElements)</title>
+<meta name="description" content="Add physics spring animation to Unity UI Toolkit VisualElements with Cascade: presets, custom springs by feel (response and bounce), springs on hover, and interruptions that keep their momentum.">
+<link rel="canonical" href="https://twitchedd.github.io/cascade/docs/spring-animation.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring animation in Unity UI Toolkit (physics springs for VisualElements)">
+<meta property="og:description" content="Add physics spring animation to Unity UI Toolkit VisualElements with Cascade: presets, custom springs by feel (response and bounce), springs on hover, and interruptions that keep their momentum.">
+<meta property="og:url" content="https://twitchedd.github.io/cascade/docs/spring-animation.html">
+<meta property="og:image" content="https://twitchedd.github.io/img/cover.png">
+<link rel="icon" href="../../img/avatar.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="docs.css">
+<script src="search.js" defer></script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "TechArticle",
+ "headline": "Spring animation in Unity UI Toolkit (physics springs for VisualElements)",
+ "description": "Add physics spring animation to Unity UI Toolkit VisualElements with Cascade: presets, custom springs by feel (response and bounce), springs on hover, and interruptions that keep their momentum.",
+ "url": "https://twitchedd.github.io/cascade/docs/spring-animation.html",
+ "author": {
+  "@type": "Organization",
+  "name": "twitched",
+  "url": "https://twitchedd.github.io/"
+ },
+ "about": {
+  "@type": "SoftwareApplication",
+  "name": "Cascade",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Unity 6000.0 or later",
+  "description": "Animation library for Unity UI Toolkit: tweens, springs, stagger and transitions.",
+  "offers": [
+   {
+    "@type": "Offer",
+    "name": "Cascade Lite",
+    "price": "0",
+    "priceCurrency": "USD",
+    "url": "https://assetstore.unity.com/packages/slug/394764"
+   },
+   {
+    "@type": "Offer",
+    "name": "Cascade Pro",
+    "url": "https://assetstore.unity.com/packages/slug/394760"
+   }
+  ]
+ }
+}
+</script>
+</head>
+<body>
+<div class="layout">
+<nav class="side" aria-label="Cascade docs">
+  <a class="home" href="../../">twitched<span>_</span></a>
+  <div class="search" role="search">
+    <input id="q" type="search" placeholder="Search docs  /" aria-label="Search the docs" autocomplete="off" spellcheck="false">
+    <ul id="results" role="listbox" hidden></ul>
+  </div>
+  <p class="group">Start</p>
+  <ul>
+    <li><a href="index.html">Overview</a></li>
+    <li><a href="getting-started.html">Getting started</a></li>
+  </ul>
+  <p class="group">Guides</p>
+  <ul>
+    <li><a href="animate-visualelement.html">Animate a VisualElement</a></li>
+    <li><a href="spring-animation.html" aria-current="page">Spring animation</a></li>
+    <li><a href="stagger-list.html">Stagger a list</a></li>
+    <li><a href="transitions.html">Transitions</a></li>
+    <li><a href="recipes.html">Recipes</a></li>
+    <li><a href="no-code.html">No-code: UI Animator</a></li>
+    <li><a href="effects.html">Shadow, glow and filters</a></li>
+    <li><a href="framer-motion.html">Coming from Framer Motion</a></li>
+    <li><a href="performance.html">Performance and lifecycle</a></li>
+    <li><a href="ai-and-skill.html">AI assistants and skill</a></li>
+  </ul>
+  <p class="group">Reference</p>
+  <ul>
+    <li><a href="easing.html">Easing curves</a></li>
+    <li><a href="api.html">API reference</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+  <p class="group">Get it</p>
+  <ul>
+    <li><a href="https://assetstore.unity.com/packages/slug/394764">Cascade Lite (free)</a></li>
+    <li><a href="https://assetstore.unity.com/packages/slug/394760">Cascade Pro</a></li>
+  </ul>
+</nav>
+<main class="doc">
+<article>
+<h1>Spring animation in UI Toolkit <span class="tier pro">Pro</span></h1>
+<p class="lede">A spring moves an element toward its target like a physical object: it speeds up, can
+overshoot, and settles. Its length comes from its stiffness rather than a fixed duration.</p>
+<p>The real reason to use one is interruption. When a new target arrives halfway, a spring keeps its
+current speed and turns toward the new target. An eased tween has to start again from zero speed, which
+shows as a hitch. Anything the player can click rapidly, drag or toggle looks better on a spring.</p>
+<p>UI Toolkit has no spring animation built in: USS transitions and the experimental animation API only
+offer fixed-duration easing curves. Cascade Pro adds springs to every verb.</p>
+
+<h2 id="add-a-spring-to-any-verb">Add a spring to any verb</h2>
+<pre><code class="cs">using Cascade;
+
+card.<span class="k">Animate</span>().<span class="k">ScaleTo</span>(<span class="n">1.2f</span>, <span class="n">0f</span>).<span class="k">Spring</span>(SpringPreset.Bouncy);
+panel.<span class="k">Animate</span>().<span class="k">MoveY</span>(<span class="n">0f</span>, <span class="n">0f</span>).<span class="k">From</span>(<span class="n">40f</span>).<span class="k">Spring</span>(SpringPreset.Snappy);</code></pre>
+<p><code>Spring()</code> replaces the verb's duration: the spring decides how long it takes, so pass
+<code>0f</code> as the duration.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Preset</th><th>Feel</th><th>Use for</th></tr></thead>
+<tbody>
+<tr><td><code>SpringPreset.Gentle</code></td><td>slow, smooth, no visible bounce</td><td>large panels, backgrounds</td></tr>
+<tr><td><code>SpringPreset.Snappy</code></td><td>quick, settles fast</td><td>buttons, menus, most UI</td></tr>
+<tr><td><code>SpringPreset.Bouncy</code></td><td>overshoots and wobbles</td><td>rewards, playful buttons, game UI</td></tr>
+</tbody></table></div>
+
+<h2 id="a-custom-spring-described-by-feel">A custom spring, described by feel</h2>
+<p>Tuning stiffness and damping by hand is slow. <code>SpringConfig.FromResponse</code> takes two numbers
+that match what you see:</p>
+<pre><code class="cs"><span class="c">// response: roughly how long one swing takes, in seconds (0.15 = a quick control, 0.5 = a large panel)</span>
+<span class="c">// bounce:   0 = no overshoot, toward 1 = very bouncy</span>
+var drawer = SpringConfig.<span class="k">FromResponse</span>(<span class="n">0.4f</span>, <span class="n">0.15f</span>);
+sidePanel.<span class="k">Animate</span>().<span class="k">MoveX</span>(<span class="n">0f</span>, <span class="n">0f</span>).<span class="k">Spring</span>(drawer);</code></pre>
+<p>If you already know the physics values, use <code>new SpringConfig(stiffness, damping, mass)</code>.</p>
+
+<h2 id="interruptions-that-keep-momentum">Interruptions that keep momentum</h2>
+<pre><code class="cs"><span class="c">// Call this on every click. No StopAnimations() first, on purpose.</span>
+void Flip()
+{
+    _flip = !_flip;
+    card.<span class="k">Animate</span>().<span class="k">MoveX</span>(_flip ? <span class="n">90f</span> : -90f, <span class="n">0f</span>).<span class="k">Spring</span>(SpringPreset.Bouncy);
+}</code></pre>
+<p>Click quickly and the card turns around smoothly instead of stopping dead each time. The animation
+that is replaced hands its current velocity to the new one. Call <code>StopAnimations()</code> first only
+when you want a hard reset, because it drops the velocity too.</p>
+
+<h2 id="springs-on-hover-and-press">Springs on hover and press</h2>
+<pre><code class="cs">playButton.<span class="k">OnHover</span>().<span class="k">ScaleTo</span>(<span class="n">1.12f</span>, <span class="n">0f</span>).<span class="k">WithSpring</span>(SpringPreset.Bouncy);
+playButton.<span class="k">OnPress</span>().<span class="k">ScaleTo</span>(<span class="n">0.94f</span>, <span class="n">0.08f</span>);</code></pre>
+<p>Moving the pointer on and off quickly keeps the motion continuous, for the same reason as above.</p>
+
+<h2 id="springs-in-a-sequence">Springs in a sequence</h2>
+<pre><code class="cs">card.<span class="k">Animate</span>()
+    .<span class="k">MoveY</span>(-40f, <span class="n">0.3f</span>).<span class="k">Ease</span>(Ease.OutCubic)
+    .<span class="k">Then</span>().<span class="k">ScaleTo</span>(<span class="n">1.1f</span>, <span class="n">0f</span>).<span class="k">Spring</span>(SpringPreset.Bouncy)
+    .<span class="k">Then</span>().<span class="k">MoveY</span>(<span class="n">0f</span>, <span class="n">0f</span>).<span class="k">Spring</span>(SpringPreset.Snappy);</code></pre>
+<p>A spring step ends when the spring has settled, then the next step starts.</p>
+
+<h2 id="when-not-to-use-a-spring">When not to use a spring</h2>
+<ul>
+<li><strong>Exact timing:</strong> a progress bar or something synced to audio needs a fixed duration. Use an ease.</li>
+<li><strong>Fades:</strong> opacity has nothing to overshoot. An ease reads cleaner.</li>
+<li><strong>Exits:</strong> things leaving the screen usually look better accelerating away with <code>Ease.InCubic</code>.</li>
+</ul>
+<div class="note">Springs are in <strong>Cascade Pro</strong>. Cascade Lite (free) has the full easing set,
+including <code>Ease.OutBack</code> and <code>Ease.OutElastic</code>, which give an overshoot with a fixed
+duration. <a href="https://assetstore.unity.com/packages/slug/394760">Get Cascade Pro</a></div>
+</article>
+<nav class="pager" aria-label="Next and previous page"><a href="animate-visualelement.html">← Animate a VisualElement</a><a href="stagger-list.html">Stagger a list →</a></nav>
+</main>
+</div>
+<footer>twitched · Cascade, the animation library for Unity UI Toolkit · <a href="../../">twitchedd.github.io</a></footer>
+</body>
+</html>

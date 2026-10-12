@@ -1,0 +1,71 @@
+order: 3
+group: Guides
+label: Spring animation
+title: Spring animation in Unity UI Toolkit (physics springs for VisualElements)
+description: Add physics spring animation to Unity UI Toolkit VisualElements with Cascade: presets, custom springs by feel (response and bounce), springs on hover, and interruptions that keep their momentum.
+---
+<h1>Spring animation in UI Toolkit <span class="tier pro">Pro</span></h1>
+<p class="lede">A spring moves an element toward its target like a physical object: it speeds up, can
+overshoot, and settles. Its length comes from its stiffness rather than a fixed duration.</p>
+<p>The real reason to use one is interruption. When a new target arrives halfway, a spring keeps its
+current speed and turns toward the new target. An eased tween has to start again from zero speed, which
+shows as a hitch. Anything the player can click rapidly, drag or toggle looks better on a spring.</p>
+<p>UI Toolkit has no spring animation built in: USS transitions and the experimental animation API only
+offer fixed-duration easing curves. Cascade Pro adds springs to every verb.</p>
+
+<h2>Add a spring to any verb</h2>
+<pre><code class="cs">using Cascade;
+
+card.Animate().ScaleTo(1.2f, 0f).Spring(SpringPreset.Bouncy);
+panel.Animate().MoveY(0f, 0f).From(40f).Spring(SpringPreset.Snappy);</code></pre>
+<p><code>Spring()</code> replaces the verb's duration: the spring decides how long it takes, so pass
+<code>0f</code> as the duration.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Preset</th><th>Feel</th><th>Use for</th></tr></thead>
+<tbody>
+<tr><td><code>SpringPreset.Gentle</code></td><td>slow, smooth, no visible bounce</td><td>large panels, backgrounds</td></tr>
+<tr><td><code>SpringPreset.Snappy</code></td><td>quick, settles fast</td><td>buttons, menus, most UI</td></tr>
+<tr><td><code>SpringPreset.Bouncy</code></td><td>overshoots and wobbles</td><td>rewards, playful buttons, game UI</td></tr>
+</tbody></table></div>
+
+<h2>A custom spring, described by feel</h2>
+<p>Tuning stiffness and damping by hand is slow. <code>SpringConfig.FromResponse</code> takes two numbers
+that match what you see:</p>
+<pre><code class="cs">// response: roughly how long one swing takes, in seconds (0.15 = a quick control, 0.5 = a large panel)
+// bounce:   0 = no overshoot, toward 1 = very bouncy
+var drawer = SpringConfig.FromResponse(0.4f, 0.15f);
+sidePanel.Animate().MoveX(0f, 0f).Spring(drawer);</code></pre>
+<p>If you already know the physics values, use <code>new SpringConfig(stiffness, damping, mass)</code>.</p>
+
+<h2>Interruptions that keep momentum</h2>
+<pre><code class="cs">// Call this on every click. No StopAnimations() first, on purpose.
+void Flip()
+{
+    _flip = !_flip;
+    card.Animate().MoveX(_flip ? 90f : -90f, 0f).Spring(SpringPreset.Bouncy);
+}</code></pre>
+<p>Click quickly and the card turns around smoothly instead of stopping dead each time. The animation
+that is replaced hands its current velocity to the new one. Call <code>StopAnimations()</code> first only
+when you want a hard reset, because it drops the velocity too.</p>
+
+<h2>Springs on hover and press</h2>
+<pre><code class="cs">playButton.OnHover().ScaleTo(1.12f, 0f).WithSpring(SpringPreset.Bouncy);
+playButton.OnPress().ScaleTo(0.94f, 0.08f);</code></pre>
+<p>Moving the pointer on and off quickly keeps the motion continuous, for the same reason as above.</p>
+
+<h2>Springs in a sequence</h2>
+<pre><code class="cs">card.Animate()
+    .MoveY(-40f, 0.3f).Ease(Ease.OutCubic)
+    .Then().ScaleTo(1.1f, 0f).Spring(SpringPreset.Bouncy)
+    .Then().MoveY(0f, 0f).Spring(SpringPreset.Snappy);</code></pre>
+<p>A spring step ends when the spring has settled, then the next step starts.</p>
+
+<h2>When not to use a spring</h2>
+<ul>
+<li><strong>Exact timing:</strong> a progress bar or something synced to audio needs a fixed duration. Use an ease.</li>
+<li><strong>Fades:</strong> opacity has nothing to overshoot. An ease reads cleaner.</li>
+<li><strong>Exits:</strong> things leaving the screen usually look better accelerating away with <code>Ease.InCubic</code>.</li>
+</ul>
+<div class="note">Springs are in <strong>Cascade Pro</strong>. Cascade Lite (free) has the full easing set,
+including <code>Ease.OutBack</code> and <code>Ease.OutElastic</code>, which give an overshoot with a fixed
+duration. <a href="https://assetstore.unity.com/packages/slug/394760">Get Cascade Pro</a></div>

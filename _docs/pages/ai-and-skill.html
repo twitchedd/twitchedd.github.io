@@ -1,0 +1,95 @@
+order: 11
+group: Guides
+label: AI assistants and skill
+title: Animate Unity UI Toolkit with AI: the Cascade agent skill and JSON sequences
+description: Let Claude Code, Cursor, Codex or Copilot write Unity UI Toolkit animations with Cascade. Install the open agent skill, use the AI guide that ships in the package, and generate validated JSON animation sequences.
+---
+<h1>AI assistants and the agent skill</h1>
+<p class="lede">Cascade is built to be written by AI coding assistants as well as people. The API is
+small and regular, the package ships a guide written for assistants, and Pro can play animations
+described as validated JSON.</p>
+
+<h2>Install the Cascade agent skill</h2>
+<p>The skill teaches a coding agent how to use Cascade: which calls exist, the mistakes to avoid, and
+how to check its own output. It works with Claude Code, Cursor, Codex, GitHub Copilot and any agent that
+reads <code>SKILL.md</code> files.</p>
+<pre><code class="sh">npx skills add twitchedd/cascade-skill</code></pre>
+<p>Or copy <code>skills/cascade/</code> from the repository into your agent's skills folder (for Claude
+Code: <code>.claude/skills/cascade/</code>).</p>
+<p><a class="cta" href="https://github.com/twitchedd/cascade-skill">Skill on GitHub</a>
+<a class="cta" href="https://www.skills.sh/twitchedd/cascade-skill">Skill on skills.sh</a></p>
+
+<h3>It writes code for your tier</h3>
+<p>The skill first checks <code>Packages/manifest.json</code> to see whether the project has Cascade
+Lite or Cascade Pro, and writes only code that tier can compile. Ask a Lite project for a bouncy spring and
+it says springs are in Pro and offers the closest Lite version, an <code>Ease.OutBack</code> overshoot.</p>
+
+<h3>Things to ask it</h3>
+<ul>
+<li>"Make the settings panel slide up and fade in when it opens."</li>
+<li>"Stagger the inventory slots in from the right."</li>
+<li>"Make this button pop when pressed."</li>
+<li>"Shake the gold counter when the player can't afford an item."</li>
+<li>"Respect reduced motion in all our menu animations."</li>
+</ul>
+
+<h2>The AI guide inside the package</h2>
+<p>Both tiers ship <code>Documentation~/AI-GUIDE.md</code>, written for assistants: every verb, the
+easing names, the rules that prevent the common mistakes, and examples from intent to code. Because it
+comes with the package, it always matches the version you have installed. The skill reads it when it
+exists. Without the skill, point your assistant at it:</p>
+<pre><code class="text">Read Packages/com.twitched.cascade.lite/Documentation~/AI-GUIDE.md,
+then fade the shop panel in when it opens.</code></pre>
+<p>(For Pro the folder is <code>Packages/com.twitched.cascade/</code>.)</p>
+
+<h3>The rule assistants most often miss</h3>
+<p>Every verb animates <em>to</em> a value, starting from the element's current value. "Fade in" on an
+element that is already visible animates from 1 to 1, and nothing happens. Entrances must state where
+they start:</p>
+<pre><code class="cs">panel.Animate().Fade(1f, 0.3f).From(0f).Ease(Ease.OutCubic);   // not just Fade(1f, 0.3f)</code></pre>
+<p>The guide and the skill both teach this, and Pro's linter (below) catches it.</p>
+
+<h2>JSON animation sequences <span class="tier pro">Pro</span></h2>
+<p>For self-contained effects such as an entrance, a shake or a pulse, an assistant can describe the
+animation as JSON instead of code. JSON is constrained and checked before it runs, so a mistake produces
+a precise error instead of code that fails to compile.</p>
+<pre><code class="json">{ "steps": [ { "actions": [
+  { "verb": "SlideIn", "edge": "Bottom", "distance": 40, "duration": 0.4, "ease": "OutCubic" },
+  { "verb": "Fade", "from": 0, "to": 1, "duration": 0.4, "ease": "OutCubic" }
+] } ] }</code></pre>
+<p>Steps run one after another; the actions inside a step run together. Durations are in seconds.</p>
+<pre><code class="cs">using Cascade;
+
+SequencePreset.PlayJson(panel, json);                                   // parse and play
+
+if (SequencePreset.TryFromJson(json, out var preset, out string error))  // or check first
+    preset.Play(panel);
+else
+    Debug.LogWarning(error);   // e.g. "step 0, action 1: verb 'Fade' requires a numeric "to""</code></pre>
+
+<h3>Let the assistant fix its own output</h3>
+<p>Errors name the exact step, action and field, and suggest the closest valid name for a typo, so an
+assistant can correct the JSON and try again:</p>
+<pre><code class="cs">MotionError err = SequencePreset.Validate(json);
+if (err.IsError)
+{
+    // err.Code: UnknownVerb, MissingField, OutOfRange, ...
+    // err.Path: "steps[0].actions[1].to"
+    // err.Suggestion: "Fade" for a misspelled verb, otherwise null
+}
+
+foreach (var advice in SequencePreset.Lint(json))   // valid, but would do nothing
+    Debug.Log(advice);                             // e.g. a fade-in without "from"</code></pre>
+<p><code>Validate</code> answers "will this run". <code>Lint</code> answers "will this do what was meant",
+for example a fade-in on an element that is already visible.</p>
+<p>The full format is in a JSON Schema you can give to a model or a validator:
+<a href="cascade-sequence.schema.json">cascade-sequence.schema.json</a>.</p>
+
+<h3>From JSON to the inspector</h3>
+<p>A generated sequence can be saved as a preset asset, and designers pick it in the
+<strong>UI Animator</strong> component's rules without writing code. The <code>Documentation~</code>
+folder includes <code>PROMPTS.md</code>, a set of ready-made intents with their JSON.</p>
+
+<h2>For AI search and crawlers</h2>
+<p>This site publishes <a href="../../llms.txt">llms.txt</a>, a plain-text index of these docs for
+language models and AI search tools.</p>

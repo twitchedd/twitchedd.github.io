@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Framer Motion for Unity UI Toolkit: concepts mapped to Cascade</title>
+<meta name="description" content="Coming from web animation? Every Framer Motion idea (animate, initial, transition, spring, variants, whileHover, staggerChildren, AnimatePresence) mapped to its Cascade equivalent in Unity UI Toolkit.">
+<link rel="canonical" href="https://twitchedd.github.io/cascade/docs/framer-motion.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Framer Motion for Unity UI Toolkit: concepts mapped to Cascade">
+<meta property="og:description" content="Coming from web animation? Every Framer Motion idea (animate, initial, transition, spring, variants, whileHover, staggerChildren, AnimatePresence) mapped to its Cascade equivalent in Unity UI Toolkit.">
+<meta property="og:url" content="https://twitchedd.github.io/cascade/docs/framer-motion.html">
+<meta property="og:image" content="https://twitchedd.github.io/img/cover.png">
+<link rel="icon" href="../../img/avatar.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="docs.css">
+<script src="search.js" defer></script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "TechArticle",
+ "headline": "Framer Motion for Unity UI Toolkit: concepts mapped to Cascade",
+ "description": "Coming from web animation? Every Framer Motion idea (animate, initial, transition, spring, variants, whileHover, staggerChildren, AnimatePresence) mapped to its Cascade equivalent in Unity UI Toolkit.",
+ "url": "https://twitchedd.github.io/cascade/docs/framer-motion.html",
+ "author": {
+  "@type": "Organization",
+  "name": "twitched",
+  "url": "https://twitchedd.github.io/"
+ },
+ "about": {
+  "@type": "SoftwareApplication",
+  "name": "Cascade",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Unity 6000.0 or later",
+  "description": "Animation library for Unity UI Toolkit: tweens, springs, stagger and transitions.",
+  "offers": [
+   {
+    "@type": "Offer",
+    "name": "Cascade Lite",
+    "price": "0",
+    "priceCurrency": "USD",
+    "url": "https://assetstore.unity.com/packages/slug/394764"
+   },
+   {
+    "@type": "Offer",
+    "name": "Cascade Pro",
+    "url": "https://assetstore.unity.com/packages/slug/394760"
+   }
+  ]
+ }
+}
+</script>
+</head>
+<body>
+<div class="layout">
+<nav class="side" aria-label="Cascade docs">
+  <a class="home" href="../../">twitched<span>_</span></a>
+  <div class="search" role="search">
+    <input id="q" type="search" placeholder="Search docs  /" aria-label="Search the docs" autocomplete="off" spellcheck="false">
+    <ul id="results" role="listbox" hidden></ul>
+  </div>
+  <p class="group">Start</p>
+  <ul>
+    <li><a href="index.html">Overview</a></li>
+    <li><a href="getting-started.html">Getting started</a></li>
+  </ul>
+  <p class="group">Guides</p>
+  <ul>
+    <li><a href="animate-visualelement.html">Animate a VisualElement</a></li>
+    <li><a href="spring-animation.html">Spring animation</a></li>
+    <li><a href="stagger-list.html">Stagger a list</a></li>
+    <li><a href="transitions.html">Transitions</a></li>
+    <li><a href="recipes.html">Recipes</a></li>
+    <li><a href="no-code.html">No-code: UI Animator</a></li>
+    <li><a href="effects.html">Shadow, glow and filters</a></li>
+    <li><a href="framer-motion.html" aria-current="page">Coming from Framer Motion</a></li>
+    <li><a href="performance.html">Performance and lifecycle</a></li>
+    <li><a href="ai-and-skill.html">AI assistants and skill</a></li>
+  </ul>
+  <p class="group">Reference</p>
+  <ul>
+    <li><a href="easing.html">Easing curves</a></li>
+    <li><a href="api.html">API reference</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+  <p class="group">Get it</p>
+  <ul>
+    <li><a href="https://assetstore.unity.com/packages/slug/394764">Cascade Lite (free)</a></li>
+    <li><a href="https://assetstore.unity.com/packages/slug/394760">Cascade Pro</a></li>
+  </ul>
+</nav>
+<main class="doc">
+<article>
+<h1>Coming from Framer Motion</h1>
+<p class="lede">UI Toolkit borrowed CSS from the web, and Cascade borrows its animation model from Framer
+Motion. If you know one, here is the other.</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Framer Motion</th><th>Cascade</th><th>Tier</th></tr></thead>
+<tbody>
+<tr><td><code>animate={{ opacity: 1, x: 0 }}</code></td><td><code>el.Animate().Fade(1f, .3f).MoveX(0f, .3f)</code></td><td>Lite</td></tr>
+<tr><td><code>initial={{ opacity: 0, y: 24 }}</code></td><td><code>.From(0f)</code> after each verb</td><td>Lite</td></tr>
+<tr><td><code>transition={{ duration: .3, ease: "easeOut" }}</code></td><td>duration on each verb, <code>.Ease(Ease.OutCubic)</code></td><td>Lite</td></tr>
+<tr><td><code>transition={{ type: "spring", stiffness, damping }}</code></td><td><code>.Spring(new SpringConfig(stiffness, damping))</code> or <code>SpringPreset.Snappy</code></td><td>Pro</td></tr>
+<tr><td><code>transition={{ type: "spring", visualDuration, bounce }}</code></td><td><code>.WithResponse(response, bounce)</code></td><td>Pro</td></tr>
+<tr><td>Interruptions keep velocity</td><td>Built in: a replaced spring hands its velocity to the new one</td><td>Pro</td></tr>
+<tr><td><code>variants</code> + <code>animate="open"</code></td><td><code>el.Variants().State("open", s =&gt; …)</code>, then <code>el.To("open")</code></td><td>Pro</td></tr>
+<tr><td><code>whileHover={{ scale: 1.05 }}</code></td><td><code>el.OnHover().ScaleTo(1.05f, .15f)</code></td><td>Pro</td></tr>
+<tr><td><code>whileTap={{ scale: .96 }}</code></td><td><code>el.OnPress().ScaleTo(.96f, .08f)</code></td><td>Pro</td></tr>
+<tr><td><code>whileFocus</code></td><td><code>el.OnFocus()</code></td><td>Pro</td></tr>
+<tr><td><code>staggerChildren: .05</code></td><td><code>items.AnimateEach()….Stagger(.05f)</code></td><td>Pro</td></tr>
+<tr><td><code>&lt;AnimatePresence&gt;</code> enter/exit</td><td><code>el.Show(Transition…)</code> / <code>el.Hide(Transition…)</code></td><td>Pro</td></tr>
+<tr><td>Page transitions</td><td><code>container.SwapTo(screen, Transition.Crossfade(.3f))</code></td><td>Pro</td></tr>
+<tr><td><code>useReducedMotion()</code></td><td><code>MotionSettings.Mode = MotionMode.Reduced</code></td><td>Lite</td></tr>
+<tr><td><code>onAnimationComplete</code></td><td><code>.OnComplete(…)</code>, or <code>.OnSettled(…)</code> to also hear about cancels</td><td>Lite</td></tr>
+<tr><td><code>useAnimate</code> controls</td><td>the chain is the handle: <code>h.Pause()</code>, <code>h.Resume()</code>, <code>h.Cancel()</code></td><td>Lite</td></tr>
+<tr><td><code>await animate(…)</code></td><td><code>await el.Animate()…</code> (returns whether it finished)</td><td>Lite</td></tr>
+</tbody></table></div>
+
+<h2 id="a-button-ported">A button, ported</h2>
+<pre><code class="text">// Framer Motion
+&lt;motion.button
+  initial={{ opacity: 0, y: 24 }}
+  animate={{ opacity: 1, y: 0 }}
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.96 }}
+  transition={{ type: "spring", stiffness: 210, damping: 22 }} /&gt;</code></pre>
+<pre><code class="cs"><span class="c">// Cascade</span>
+button.<span class="k">OnHover</span>().<span class="k">ScaleTo</span>(<span class="n">1.05f</span>, <span class="n">0.15f</span>, Ease.OutBack);
+button.<span class="k">OnPress</span>().<span class="k">ScaleTo</span>(<span class="n">0.96f</span>, <span class="n">0.08f</span>);
+button.<span class="k">Animate</span>()
+      .<span class="k">Fade</span>(<span class="n">1f</span>, <span class="n">0f</span>).<span class="k">From</span>(<span class="n">0f</span>).<span class="k">Spring</span>(SpringPreset.Snappy)
+      .<span class="k">MoveY</span>(<span class="n">0f</span>, <span class="n">0f</span>).<span class="k">From</span>(<span class="n">24f</span>).<span class="k">Spring</span>(SpringPreset.Snappy);</code></pre>
+
+<h2 id="differences-worth-knowing">Differences worth knowing</h2>
+<ul>
+<li><strong>Durations are seconds,</strong> like Framer Motion, not milliseconds like Unity's own scheduler.</li>
+<li><strong>Verbs in one chain run together.</strong> <code>.Then()</code> starts the next step, where Framer
+Motion would use keyframes or a sequence.</li>
+<li><strong>Animations stop when the element leaves the panel,</strong> the way Framer Motion stops on unmount.</li>
+<li><strong>There is no layout animation (FLIP).</strong> The <code>Width</code>, <code>Height</code>,
+<code>Top</code> and <code>Left</code> verbs animate layout values directly.</li>
+</ul>
+</article>
+<nav class="pager" aria-label="Next and previous page"><a href="effects.html">← Shadow, glow and filters</a><a href="performance.html">Performance and lifecycle →</a></nav>
+</main>
+</div>
+<footer>twitched · Cascade, the animation library for Unity UI Toolkit · <a href="../../">twitchedd.github.io</a></footer>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cascade docs: the animation library for Unity UI Toolkit</title>
+<meta name="description" content="Documentation for Cascade, a runtime animation library for Unity UI Toolkit (UIElements, UXML/USS): tweens, easing, springs, stagger, enter/exit and screen transitions. Free Lite tier, MIT licensed.">
+<link rel="canonical" href="https://twitchedd.github.io/cascade/docs/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Cascade docs: the animation library for Unity UI Toolkit">
+<meta property="og:description" content="Documentation for Cascade, a runtime animation library for Unity UI Toolkit (UIElements, UXML/USS): tweens, easing, springs, stagger, enter/exit and screen transitions. Free Lite tier, MIT licensed.">
+<meta property="og:url" content="https://twitchedd.github.io/cascade/docs/">
+<meta property="og:image" content="https://twitchedd.github.io/img/cover.png">
+<link rel="icon" href="../../img/avatar.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="docs.css">
+<script src="search.js" defer></script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "TechArticle",
+ "headline": "Cascade docs: the animation library for Unity UI Toolkit",
+ "description": "Documentation for Cascade, a runtime animation library for Unity UI Toolkit (UIElements, UXML/USS): tweens, easing, springs, stagger, enter/exit and screen transitions. Free Lite tier, MIT licensed.",
+ "url": "https://twitchedd.github.io/cascade/docs/",
+ "author": {
+  "@type": "Organization",
+  "name": "twitched",
+  "url": "https://twitchedd.github.io/"
+ },
+ "about": {
+  "@type": "SoftwareApplication",
+  "name": "Cascade",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Unity 6000.0 or later",
+  "description": "Animation library for Unity UI Toolkit: tweens, springs, stagger and transitions.",
+  "offers": [
+   {
+    "@type": "Offer",
+    "name": "Cascade Lite",
+    "price": "0",
+    "priceCurrency": "USD",
+    "url": "https://assetstore.unity.com/packages/slug/394764"
+   },
+   {
+    "@type": "Offer",
+    "name": "Cascade Pro",
+    "url": "https://assetstore.unity.com/packages/slug/394760"
+   }
+  ]
+ }
+}
+</script>
+</head>
+<body>
+<div class="layout">
+<nav class="side" aria-label="Cascade docs">
+  <a class="home" href="../../">twitched<span>_</span></a>
+  <div class="search" role="search">
+    <input id="q" type="search" placeholder="Search docs  /" aria-label="Search the docs" autocomplete="off" spellcheck="false">
+    <ul id="results" role="listbox" hidden></ul>
+  </div>
+  <p class="group">Start</p>
+  <ul>
+    <li><a href="index.html" aria-current="page">Overview</a></li>
+    <li><a href="getting-started.html">Getting started</a></li>
+  </ul>
+  <p class="group">Guides</p>
+  <ul>
+    <li><a href="animate-visualelement.html">Animate a VisualElement</a></li>
+    <li><a href="spring-animation.html">Spring animation</a></li>
+    <li><a href="stagger-list.html">Stagger a list</a></li>
+    <li><a href="transitions.html">Transitions</a></li>
+    <li><a href="recipes.html">Recipes</a></li>
+    <li><a href="no-code.html">No-code: UI Animator</a></li>
+    <li><a href="effects.html">Shadow, glow and filters</a></li>
+    <li><a href="framer-motion.html">Coming from Framer Motion</a></li>
+    <li><a href="performance.html">Performance and lifecycle</a></li>
+    <li><a href="ai-and-skill.html">AI assistants and skill</a></li>
+  </ul>
+  <p class="group">Reference</p>
+  <ul>
+    <li><a href="easing.html">Easing curves</a></li>
+    <li><a href="api.html">API reference</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+  <p class="group">Get it</p>
+  <ul>
+    <li><a href="https://assetstore.unity.com/packages/slug/394764">Cascade Lite (free)</a></li>
+    <li><a href="https://assetstore.unity.com/packages/slug/394760">Cascade Pro</a></li>
+  </ul>
+</nav>
+<main class="doc">
+<article>
+<h1>Cascade docs</h1>
+<p class="lede">Cascade is an animation library for Unity UI Toolkit. It animates any
+<code>VisualElement</code> at runtime with one line of C#: fades, moves, scales, colors, sizes, springs,
+staggered lists and screen transitions.</p>
+<p>It works with UXML/USS and UI Toolkit (UIElements) in Unity 6000.0 and later. It has no third-party
+dependencies and allocates nothing per frame. It doesn't support uGUI (Canvas).</p>
+
+<pre><code class="cs">using Cascade;
+
+panel.<span class="k">Animate</span>()
+     .<span class="k">Fade</span>(<span class="n">1f</span>, <span class="n">0.3f</span>).<span class="k">From</span>(<span class="n">0f</span>).<span class="k">Ease</span>(Ease.OutCubic)
+     .<span class="k">MoveY</span>(<span class="n">0f</span>, <span class="n">0.3f</span>).<span class="k">From</span>(<span class="n">24f</span>).<span class="k">Ease</span>(Ease.OutCubic);   <span class="c">// both run together</span></code></pre>
+
+<h2 id="lite-and-pro">Lite and Pro</h2>
+<p>Cascade comes in two tiers. Lite is free and MIT licensed, and covers the tween engine. Pro is a
+superset: it includes everything in Lite and adds the parts that are hard to write yourself.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Feature</th><th>Lite (free)</th><th>Pro</th></tr></thead>
+<tbody>
+<tr><td>Fade, move, scale, rotate, colors, width/height, top/left</td><td>yes</td><td>yes</td></tr>
+<tr><td>Full easing set and <code>AnimationCurve</code> easing</td><td>yes</td><td>yes</td></tr>
+<tr><td>Sequencing (<code>Then</code>), delays, loops, pause/resume/cancel</td><td>yes</td><td>yes</td></tr>
+<tr><td><code>await</code> any animation</td><td>yes</td><td>yes</td></tr>
+<tr><td>Reduced-motion setting</td><td>yes</td><td>yes</td></tr>
+<tr><td>Physics springs that keep momentum when interrupted</td><td>no</td><td>yes</td></tr>
+<tr><td>Stagger across a list of elements</td><td>no</td><td>yes</td></tr>
+<tr><td>Enter/exit and screen transitions (<code>Show</code>, <code>Hide</code>, <code>SwapTo</code>)</td><td>no</td><td>yes</td></tr>
+<tr><td>Hover, press and focus animations</td><td>no</td><td>yes</td></tr>
+<tr><td>Named states (variants)</td><td>no</td><td>yes</td></tr>
+<tr><td>No-code UI Animator component with live preview in edit mode</td><td>no</td><td>yes</td></tr>
+<tr><td>Drop shadow and glow elements</td><td>no</td><td>yes</td></tr>
+</tbody></table></div>
+<p>Each page marks Pro-only code with <span class="tier pro">Pro</span>. Everything else works in both.</p>
+<p><a class="cta" href="https://assetstore.unity.com/packages/slug/394764">Get Cascade Lite (free)</a>
+<a class="cta" href="https://assetstore.unity.com/packages/slug/394760">Get Cascade Pro</a></p>
+
+<h2 id="start">Start</h2>
+<ul>
+<li><a href="getting-started.html"><strong>Getting started</strong></a>: install, open the demo, write your first animation.</li>
+<li><a href="animate-visualelement.html"><strong>How to animate a UI Toolkit VisualElement</strong></a>: the built-in options and when a library helps.</li>
+</ul>
+<h2 id="guides">Guides</h2>
+<ul>
+<li><a href="spring-animation.html"><strong>Spring animation</strong></a>: presets, custom springs, interruptions that keep momentum.</li>
+<li><a href="stagger-list.html"><strong>Stagger a list</strong></a>: menus and lists that come in one item at a time.</li>
+<li><a href="transitions.html"><strong>Enter, exit and screen transitions</strong></a>: toasts, modals, tabs and screen swaps.</li>
+<li><a href="recipes.html"><strong>Recipes</strong></a>: hover and press, accordions, named states, async flows, loops, reduced motion, common mistakes.</li>
+<li><a href="no-code.html"><strong>No-code: UI Animator</strong></a>: add motion from the Inspector, with live preview.</li>
+<li><a href="effects.html"><strong>Shadow, glow and filters</strong></a>: drop shadows and glows, animated blur and tint.</li>
+<li><a href="framer-motion.html"><strong>Coming from Framer Motion</strong></a>: every concept mapped.</li>
+<li><a href="performance.html"><strong>Performance and lifecycle</strong></a>: what runs each frame, what it costs, and when animations stop.</li>
+<li><a href="ai-and-skill.html"><strong>AI assistants and the agent skill</strong></a>: let your coding assistant write Cascade code.</li>
+</ul>
+<h2 id="reference">Reference</h2>
+<ul>
+<li><a href="easing.html"><strong>Easing curves</strong></a>: all 28 curves, drawn.</li>
+<li><a href="api.html"><strong>API reference</strong></a>: every public type and method, Lite and Pro marked.</li>
+<li><a href="faq.html"><strong>FAQ</strong></a>.</li>
+</ul>
+<p>The same guides ship inside the package under <code>Documentation~</code>, with an AI authoring guide
+for assistants that write Cascade code.</p>
+</article>
+<nav class="pager" aria-label="Next and previous page"><span></span><a href="getting-started.html">Getting started →</a></nav>
+</main>
+</div>
+<footer>twitched · Cascade, the animation library for Unity UI Toolkit · <a href="../../">twitchedd.github.io</a></footer>
+</body>
+</html>

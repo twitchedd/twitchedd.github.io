@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drop shadow and glow in Unity UI Toolkit, and animated blur and tint</title>
+<meta name="description" content="Add a soft drop shadow or outer glow to a Unity UI Toolkit element with Cascade&#x27;s mesh-based DropShadowElement, and animate USS filter blur and tint on Unity 6.3 and later.">
+<link rel="canonical" href="https://twitchedd.github.io/cascade/docs/effects.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Drop shadow and glow in Unity UI Toolkit, and animated blur and tint">
+<meta property="og:description" content="Add a soft drop shadow or outer glow to a Unity UI Toolkit element with Cascade&#x27;s mesh-based DropShadowElement, and animate USS filter blur and tint on Unity 6.3 and later.">
+<meta property="og:url" content="https://twitchedd.github.io/cascade/docs/effects.html">
+<meta property="og:image" content="https://twitchedd.github.io/img/cover.png">
+<link rel="icon" href="../../img/avatar.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="docs.css">
+<script src="search.js" defer></script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "TechArticle",
+ "headline": "Drop shadow and glow in Unity UI Toolkit, and animated blur and tint",
+ "description": "Add a soft drop shadow or outer glow to a Unity UI Toolkit element with Cascade's mesh-based DropShadowElement, and animate USS filter blur and tint on Unity 6.3 and later.",
+ "url": "https://twitchedd.github.io/cascade/docs/effects.html",
+ "author": {
+  "@type": "Organization",
+  "name": "twitched",
+  "url": "https://twitchedd.github.io/"
+ },
+ "about": {
+  "@type": "SoftwareApplication",
+  "name": "Cascade",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Unity 6000.0 or later",
+  "description": "Animation library for Unity UI Toolkit: tweens, springs, stagger and transitions.",
+  "offers": [
+   {
+    "@type": "Offer",
+    "name": "Cascade Lite",
+    "price": "0",
+    "priceCurrency": "USD",
+    "url": "https://assetstore.unity.com/packages/slug/394764"
+   },
+   {
+    "@type": "Offer",
+    "name": "Cascade Pro",
+    "url": "https://assetstore.unity.com/packages/slug/394760"
+   }
+  ]
+ }
+}
+</script>
+</head>
+<body>
+<div class="layout">
+<nav class="side" aria-label="Cascade docs">
+  <a class="home" href="../../">twitched<span>_</span></a>
+  <div class="search" role="search">
+    <input id="q" type="search" placeholder="Search docs  /" aria-label="Search the docs" autocomplete="off" spellcheck="false">
+    <ul id="results" role="listbox" hidden></ul>
+  </div>
+  <p class="group">Start</p>
+  <ul>
+    <li><a href="index.html">Overview</a></li>
+    <li><a href="getting-started.html">Getting started</a></li>
+  </ul>
+  <p class="group">Guides</p>
+  <ul>
+    <li><a href="animate-visualelement.html">Animate a VisualElement</a></li>
+    <li><a href="spring-animation.html">Spring animation</a></li>
+    <li><a href="stagger-list.html">Stagger a list</a></li>
+    <li><a href="transitions.html">Transitions</a></li>
+    <li><a href="recipes.html">Recipes</a></li>
+    <li><a href="no-code.html">No-code: UI Animator</a></li>
+    <li><a href="effects.html" aria-current="page">Shadow, glow and filters</a></li>
+    <li><a href="framer-motion.html">Coming from Framer Motion</a></li>
+    <li><a href="performance.html">Performance and lifecycle</a></li>
+    <li><a href="ai-and-skill.html">AI assistants and skill</a></li>
+  </ul>
+  <p class="group">Reference</p>
+  <ul>
+    <li><a href="easing.html">Easing curves</a></li>
+    <li><a href="api.html">API reference</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+  <p class="group">Get it</p>
+  <ul>
+    <li><a href="https://assetstore.unity.com/packages/slug/394764">Cascade Lite (free)</a></li>
+    <li><a href="https://assetstore.unity.com/packages/slug/394760">Cascade Pro</a></li>
+  </ul>
+</nav>
+<main class="doc">
+<article>
+<h1>Shadow, glow and filters <span class="tier pro">Pro</span></h1>
+<p class="lede">UI Toolkit has no box-shadow. Cascade Pro adds a drop shadow and glow element drawn with a
+mesh, and on Unity 6.3 and later it animates the USS <code>filter</code> blur and tint.</p>
+
+<h2 id="drop-shadow">Drop shadow</h2>
+<p><code>DropShadowElement</code> draws a soft shadow behind its children. Put the element you want shadowed
+inside it.</p>
+<pre><code class="cs">using Cascade;
+
+var shadow = new DropShadowElement
+{
+    shadowColor = new Color(<span class="n">0f</span>, <span class="n">0f</span>, <span class="n">0f</span>, <span class="n">0.5f</span>),
+    blur = <span class="n">22f</span>,      <span class="c">// how far the edge fades, in pixels</span>
+    spread = <span class="n">2f</span>,     <span class="c">// grows the shadow before the fade</span>
+    offsetY = <span class="n">12f</span>,   <span class="c">// pushes it down, like light from above</span>
+};
+shadow.style.width = <span class="n">110</span>;
+shadow.style.height = <span class="n">90</span>;
+shadow.<span class="k">Add</span>(card);</code></pre>
+<p>It is also a UXML element, so you can add it to a layout in UI Builder and set its color, blur, spread and offsets there.</p>
+
+<h2 id="glow">Glow</h2>
+<p>A glow is the same element with no offset and a bright color:</p>
+<pre><code class="cs">var glow = new DropShadowElement { shadowColor = new Color(<span class="n">1f</span>, <span class="n">0.6f</span>, <span class="n">0.2f</span>, <span class="n">0.8f</span>), blur = <span class="n">18f</span>, spread = <span class="n">4f</span>, offsetY = <span class="n">0f</span> };
+glow.<span class="k">Add</span>(rewardIcon);</code></pre>
+<p>It's mesh-drawn: no shaders and any render pipeline. Each one costs an extra draw, which is fine for a
+few hero cards and buttons, not for every row of a long list.</p>
+
+<h2 id="animated-blur-and-tint-unity-6-3">Animated blur and tint (Unity 6.3+)</h2>
+<p>Unity 6.3 added a <code>filter</code> property to UI Toolkit. Cascade animates two of its functions as
+verbs:</p>
+<pre><code class="cs">background.<span class="k">Animate</span>().<span class="k">BlurTo</span>(<span class="n">8f</span>, <span class="n">0.3f</span>).<span class="k">Ease</span>(Ease.OutCubic);              <span class="c">// blur radius in pixels</span>
+icon.<span class="k">Animate</span>().<span class="k">TintTo</span>(new Color(<span class="n">1f</span>, <span class="n">0.4f</span>, <span class="n">0.4f</span>), <span class="n">0.2f</span>);                 <span class="c">// flash red</span></code></pre>
+<p>Other filter functions already on the element are kept. A filter re-renders the element every frame
+it animates, so measure it on your target devices. On Unity versions before 6.3 these verbs compile and
+do nothing, with a single console warning, so shared code stays portable.</p>
+</article>
+<nav class="pager" aria-label="Next and previous page"><a href="no-code.html">← No-code: UI Animator</a><a href="framer-motion.html">Coming from Framer Motion →</a></nav>
+</main>
+</div>
+<footer>twitched · Cascade, the animation library for Unity UI Toolkit · <a href="../../">twitchedd.github.io</a></footer>
+</body>
+</html>

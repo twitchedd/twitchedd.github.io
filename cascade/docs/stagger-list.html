@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stagger animation in Unity UI Toolkit: animate list items one after another</title>
+<meta name="description" content="Animate a UI Toolkit list or menu so items enter one after another. Cascade&#x27;s AnimateEach and Stagger, how to choose the step, and how to schedule what comes after a staggered group.">
+<link rel="canonical" href="https://twitchedd.github.io/cascade/docs/stagger-list.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Stagger animation in Unity UI Toolkit: animate list items one after another">
+<meta property="og:description" content="Animate a UI Toolkit list or menu so items enter one after another. Cascade&#x27;s AnimateEach and Stagger, how to choose the step, and how to schedule what comes after a staggered group.">
+<meta property="og:url" content="https://twitchedd.github.io/cascade/docs/stagger-list.html">
+<meta property="og:image" content="https://twitchedd.github.io/img/cover.png">
+<link rel="icon" href="../../img/avatar.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="docs.css">
+<script src="search.js" defer></script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "TechArticle",
+ "headline": "Stagger animation in Unity UI Toolkit: animate list items one after another",
+ "description": "Animate a UI Toolkit list or menu so items enter one after another. Cascade's AnimateEach and Stagger, how to choose the step, and how to schedule what comes after a staggered group.",
+ "url": "https://twitchedd.github.io/cascade/docs/stagger-list.html",
+ "author": {
+  "@type": "Organization",
+  "name": "twitched",
+  "url": "https://twitchedd.github.io/"
+ },
+ "about": {
+  "@type": "SoftwareApplication",
+  "name": "Cascade",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Unity 6000.0 or later",
+  "description": "Animation library for Unity UI Toolkit: tweens, springs, stagger and transitions.",
+  "offers": [
+   {
+    "@type": "Offer",
+    "name": "Cascade Lite",
+    "price": "0",
+    "priceCurrency": "USD",
+    "url": "https://assetstore.unity.com/packages/slug/394764"
+   },
+   {
+    "@type": "Offer",
+    "name": "Cascade Pro",
+    "url": "https://assetstore.unity.com/packages/slug/394760"
+   }
+  ]
+ }
+}
+</script>
+</head>
+<body>
+<div class="layout">
+<nav class="side" aria-label="Cascade docs">
+  <a class="home" href="../../">twitched<span>_</span></a>
+  <div class="search" role="search">
+    <input id="q" type="search" placeholder="Search docs  /" aria-label="Search the docs" autocomplete="off" spellcheck="false">
+    <ul id="results" role="listbox" hidden></ul>
+  </div>
+  <p class="group">Start</p>
+  <ul>
+    <li><a href="index.html">Overview</a></li>
+    <li><a href="getting-started.html">Getting started</a></li>
+  </ul>
+  <p class="group">Guides</p>
+  <ul>
+    <li><a href="animate-visualelement.html">Animate a VisualElement</a></li>
+    <li><a href="spring-animation.html">Spring animation</a></li>
+    <li><a href="stagger-list.html" aria-current="page">Stagger a list</a></li>
+    <li><a href="transitions.html">Transitions</a></li>
+    <li><a href="recipes.html">Recipes</a></li>
+    <li><a href="no-code.html">No-code: UI Animator</a></li>
+    <li><a href="effects.html">Shadow, glow and filters</a></li>
+    <li><a href="framer-motion.html">Coming from Framer Motion</a></li>
+    <li><a href="performance.html">Performance and lifecycle</a></li>
+    <li><a href="ai-and-skill.html">AI assistants and skill</a></li>
+  </ul>
+  <p class="group">Reference</p>
+  <ul>
+    <li><a href="easing.html">Easing curves</a></li>
+    <li><a href="api.html">API reference</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+  <p class="group">Get it</p>
+  <ul>
+    <li><a href="https://assetstore.unity.com/packages/slug/394764">Cascade Lite (free)</a></li>
+    <li><a href="https://assetstore.unity.com/packages/slug/394760">Cascade Pro</a></li>
+  </ul>
+</nav>
+<main class="doc">
+<article>
+<h1>Stagger a list <span class="tier pro">Pro</span></h1>
+<p class="lede">A stagger plays the same animation on each item of a list, each one starting a little
+later than the one before. It makes a menu or a list of results read as one movement instead of a block
+appearing at once.</p>
+
+<pre><code class="cs">using Cascade;
+using System.Linq;
+
+var items = listRoot.<span class="k">Query</span>&lt;VisualElement&gt;(className: "row").<span class="k">ToList</span>();
+
+items.<span class="k">AnimateEach</span>()
+     .<span class="k">SlideIn</span>(Edge.Right, <span class="n">0.35f</span>).<span class="k">Ease</span>(Ease.OutCubic)
+     .<span class="k">Fade</span>(<span class="n">1f</span>, <span class="n">0.35f</span>).<span class="k">From</span>(<span class="n">0f</span>)
+     .<span class="k">Stagger</span>(<span class="n">0.06f</span>);              <span class="c">// item i starts i × 0.06 s after the first</span></code></pre>
+<p><code>AnimateEach()</code> works on any list of <code>VisualElement</code>s, so the result of a UQuery
+works directly.</p>
+<p>Write <code>From(0f)</code> on the fade. Each item starts from its own value when its turn comes, and
+an item that is already visible has nothing to fade. <code>From</code> also hides the later items right
+away, so they don't flash before their turn.</p>
+
+<h2 id="choosing-the-step">Choosing the step</h2>
+<ul>
+<li><strong>0.04–0.08 s</strong> per item works for most menus and lists.</li>
+<li>Above about <strong>0.1 s</strong> a long list starts to feel slow.</li>
+<li>The whole group takes <code>duration + (count − 1) × step</code>, so it grows with the list.</li>
+</ul>
+<p>For lists whose length changes, fix the total time instead of the step:</p>
+<pre><code class="cs"><span class="c">// spread the whole list over 0.4 s, but never more than 0.06 s between items</span>
+float step = Stagger.<span class="k">StepForSpan</span>(items.Count, <span class="n">0.4f</span>, <span class="n">0.06f</span>);
+items.<span class="k">AnimateEach</span>().<span class="k">Fade</span>(<span class="n">1f</span>, <span class="n">0.3f</span>).<span class="k">From</span>(<span class="n">0f</span>).<span class="k">Stagger</span>(step);</code></pre>
+
+<h2 id="start-something-after-the-list">Start something after the list</h2>
+<pre><code class="cs">float total = Stagger.<span class="k">TotalDuration</span>(items.Count, <span class="n">0.35f</span>, <span class="n">0.06f</span>);
+footer.<span class="k">Animate</span>().<span class="k">Fade</span>(<span class="n">1f</span>, <span class="n">0.25f</span>).<span class="k">From</span>(<span class="n">0f</span>).<span class="k">Delay</span>(total);</code></pre>
+
+<h2 id="replaying-the-list">Replaying the list</h2>
+<p>When the list is shown again, stop what is still running on the items first, so a quick re-open
+starts cleanly:</p>
+<pre><code class="cs">foreach (var item in items) item.<span class="k">StopAnimations</span>();
+items.<span class="k">AnimateEach</span>().<span class="k">SlideIn</span>(Edge.Right, <span class="n">0.35f</span>).<span class="k">Ease</span>(Ease.OutCubic).<span class="k">Fade</span>(<span class="n">1f</span>, <span class="n">0.35f</span>).<span class="k">From</span>(<span class="n">0f</span>).<span class="k">Stagger</span>(<span class="n">0.06f</span>);</code></pre>
+
+<h2 id="staggering-with-cascade-lite">Staggering with Cascade Lite</h2>
+<p>Lite has no <code>AnimateEach</code>, but it has <code>Delay</code>. A loop gives the same result for
+a short list:</p>
+<pre><code class="cs">for (int i = <span class="n">0</span>; i &lt; items.Count; i++)
+{
+    items[i].<span class="k">Animate</span>()
+        .<span class="k">Fade</span>(<span class="n">1f</span>, <span class="n">0.3f</span>).<span class="k">From</span>(<span class="n">0f</span>).<span class="k">Delay</span>(i * <span class="n">0.06f</span>)
+        .<span class="k">SlideIn</span>(Edge.Right, <span class="n">0.3f</span>).<span class="k">Ease</span>(Ease.OutCubic).<span class="k">Delay</span>(i * <span class="n">0.06f</span>);
+}</code></pre>
+<p>Pro's <code>AnimateEach</code> adds the timing helpers above, works with springs, and handles
+replays and cancelling for the whole group.</p>
+<p><a class="cta" href="https://assetstore.unity.com/packages/slug/394760">Get Cascade Pro</a>
+<a class="cta" href="https://assetstore.unity.com/packages/slug/394764">Get Cascade Lite (free)</a></p>
+</article>
+<nav class="pager" aria-label="Next and previous page"><a href="spring-animation.html">← Spring animation</a><a href="transitions.html">Transitions →</a></nav>
+</main>
+</div>
+<footer>twitched · Cascade, the animation library for Unity UI Toolkit · <a href="../../">twitchedd.github.io</a></footer>
+</body>
+</html>

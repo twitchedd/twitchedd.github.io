@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unity UI Toolkit animation recipes: hover, accordion, states, async, loops</title>
+<meta name="description" content="Copy-and-paste Unity UI Toolkit animation patterns with Cascade: hover/press/focus feedback, an accordion, named states, async sequences, loops, additive nudges, reduced motion, and the mistakes that break UI animation.">
+<link rel="canonical" href="https://twitchedd.github.io/cascade/docs/recipes.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity UI Toolkit animation recipes: hover, accordion, states, async, loops">
+<meta property="og:description" content="Copy-and-paste Unity UI Toolkit animation patterns with Cascade: hover/press/focus feedback, an accordion, named states, async sequences, loops, additive nudges, reduced motion, and the mistakes that break UI animation.">
+<meta property="og:url" content="https://twitchedd.github.io/cascade/docs/recipes.html">
+<meta property="og:image" content="https://twitchedd.github.io/img/cover.png">
+<link rel="icon" href="../../img/avatar.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="docs.css">
+<script src="search.js" defer></script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "TechArticle",
+ "headline": "Unity UI Toolkit animation recipes: hover, accordion, states, async, loops",
+ "description": "Copy-and-paste Unity UI Toolkit animation patterns with Cascade: hover/press/focus feedback, an accordion, named states, async sequences, loops, additive nudges, reduced motion, and the mistakes that break UI animation.",
+ "url": "https://twitchedd.github.io/cascade/docs/recipes.html",
+ "author": {
+  "@type": "Organization",
+  "name": "twitched",
+  "url": "https://twitchedd.github.io/"
+ },
+ "about": {
+  "@type": "SoftwareApplication",
+  "name": "Cascade",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Unity 6000.0 or later",
+  "description": "Animation library for Unity UI Toolkit: tweens, springs, stagger and transitions.",
+  "offers": [
+   {
+    "@type": "Offer",
+    "name": "Cascade Lite",
+    "price": "0",
+    "priceCurrency": "USD",
+    "url": "https://assetstore.unity.com/packages/slug/394764"
+   },
+   {
+    "@type": "Offer",
+    "name": "Cascade Pro",
+    "url": "https://assetstore.unity.com/packages/slug/394760"
+   }
+  ]
+ }
+}
+</script>
+</head>
+<body>
+<div class="layout">
+<nav class="side" aria-label="Cascade docs">
+  <a class="home" href="../../">twitched<span>_</span></a>
+  <div class="search" role="search">
+    <input id="q" type="search" placeholder="Search docs  /" aria-label="Search the docs" autocomplete="off" spellcheck="false">
+    <ul id="results" role="listbox" hidden></ul>
+  </div>
+  <p class="group">Start</p>
+  <ul>
+    <li><a href="index.html">Overview</a></li>
+    <li><a href="getting-started.html">Getting started</a></li>
+  </ul>
+  <p class="group">Guides</p>
+  <ul>
+    <li><a href="animate-visualelement.html">Animate a VisualElement</a></li>
+    <li><a href="spring-animation.html">Spring animation</a></li>
+    <li><a href="stagger-list.html">Stagger a list</a></li>
+    <li><a href="transitions.html">Transitions</a></li>
+    <li><a href="recipes.html" aria-current="page">Recipes</a></li>
+    <li><a href="no-code.html">No-code: UI Animator</a></li>
+    <li><a href="effects.html">Shadow, glow and filters</a></li>
+    <li><a href="framer-motion.html">Coming from Framer Motion</a></li>
+    <li><a href="performance.html">Performance and lifecycle</a></li>
+    <li><a href="ai-and-skill.html">AI assistants and skill</a></li>
+  </ul>
+  <p class="group">Reference</p>
+  <ul>
+    <li><a href="easing.html">Easing curves</a></li>
+    <li><a href="api.html">API reference</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+  <p class="group">Get it</p>
+  <ul>
+    <li><a href="https://assetstore.unity.com/packages/slug/394764">Cascade Lite (free)</a></li>
+    <li><a href="https://assetstore.unity.com/packages/slug/394760">Cascade Pro</a></li>
+  </ul>
+</nav>
+<main class="doc">
+<article>
+<h1>Recipes</h1>
+<p class="lede">Short patterns for common UI, each one taken from the demo that ships with the package.
+Toasts, modals, tabs and screen swaps are on the <a href="transitions.html">transitions page</a>, and
+lists on the <a href="stagger-list.html">stagger page</a>.</p>
+
+<h2 id="hover-press-and-focus-pro">Hover, press and focus <span class="tier pro">Pro</span></h2>
+<pre><code class="cs">playButton.<span class="k">OnHover</span>().<span class="k">ScaleTo</span>(<span class="n">1.08f</span>, <span class="n">0.12f</span>, Ease.OutBack);
+playButton.<span class="k">OnPress</span>().<span class="k">ScaleTo</span>(<span class="n">0.94f</span>, <span class="n">0.08f</span>);
+playButton.<span class="k">OnFocus</span>().<span class="k">ScaleTo</span>(<span class="n">1.08f</span>, <span class="n">0.15f</span>, Ease.OutBack);   <span class="c">// keyboard and gamepad get the same feedback</span></code></pre>
+<p>Declare these once when you set up the screen, not inside event handlers. Pair <code>OnHover</code>
+with <code>OnFocus</code>, or the feedback only works with a mouse.</p>
+
+<h2 id="accordion">Accordion</h2>
+<pre><code class="cs">void ToggleAccordion()
+{
+    open = !open;
+    body.<span class="k">Animate</span>().<span class="k">Height</span>(open ? <span class="n">168f</span> : <span class="n">0f</span>, <span class="n">0.3f</span>).<span class="k">Ease</span>(Ease.OutCubic);
+}</code></pre>
+<p>Give the body <code>overflow: hidden</code> in USS so its contents are clipped while it closes.
+<code>Height</code> re-runs layout every frame, which is what an accordion needs; for many elements at
+once, prefer <code>MoveX</code>, <code>ScaleTo</code> and <code>Rotate</code>, which don't.</p>
+
+<h2 id="named-states-pro">Named states <span class="tier pro">Pro</span></h2>
+<pre><code class="cs">card.<span class="k">Variants</span>()
+    .<span class="k">State</span>("normal",   s =&gt; s.<span class="k">ScaleTo</span>(<span class="n">1f</span>).<span class="k">RotateTo</span>(<span class="n">0f</span>).<span class="k">FadeTo</span>(<span class="n">1f</span>).<span class="k">In</span>(<span class="n">0.35f</span>).<span class="k">WithSpring</span>(SpringPreset.Snappy))
+    .<span class="k">State</span>("featured", s =&gt; s.<span class="k">ScaleTo</span>(<span class="n">1.2f</span>).<span class="k">RotateTo</span>(-5f).<span class="k">FadeTo</span>(<span class="n">1f</span>).<span class="k">In</span>(<span class="n">0.35f</span>).<span class="k">WithSpring</span>(SpringPreset.Bouncy))
+    .<span class="k">State</span>("dim",      s =&gt; s.<span class="k">ScaleTo</span>(<span class="n">0.9f</span>).<span class="k">RotateTo</span>(<span class="n">0f</span>).<span class="k">FadeTo</span>(<span class="n">0.4f</span>).<span class="k">In</span>(<span class="n">0.3f</span>).<span class="k">With</span>(Ease.OutCubic));
+
+card.<span class="k">To</span>("featured");   <span class="c">// later, from anywhere</span></code></pre>
+<p>Declare each state once and move between them by name. Selection, difficulty pickers and inventory
+slots fit this well: three states cost three declarations, not a transition for every pair.</p>
+
+<h2 id="a-sequence-with-async-await">A sequence with async/await</h2>
+<pre><code class="cs">async void PlayIntro()
+{
+    bool finished = await title.<span class="k">Animate</span>().<span class="k">Fade</span>(<span class="n">1f</span>, <span class="n">0.4f</span>).<span class="k">From</span>(<span class="n">0f</span>).<span class="k">Ease</span>(Ease.OutCubic);
+    if (!finished) return;   <span class="c">// cancelled: the screen closed, so stop here</span>
+    await subtitle.<span class="k">Animate</span>().<span class="k">MoveY</span>(<span class="n">0f</span>, <span class="n">0.35f</span>).<span class="k">From</span>(<span class="n">20f</span>).<span class="k">Ease</span>(Ease.OutCubic);
+    await startButton.<span class="k">Animate</span>().<span class="k">ScaleTo</span>(<span class="n">1f</span>, <span class="n">0.3f</span>).<span class="k">From</span>(<span class="n">0.8f</span>).<span class="k">Ease</span>(Ease.OutBack);
+}</code></pre>
+<p>Always check the result. An intro that continues after its screen has closed is a common source of
+errors. Await each animation once; keep the result if you need it again.</p>
+<p>Without async, <code>Then()</code> does the same and allocates nothing:</p>
+<pre><code class="cs">card.<span class="k">Animate</span>()
+    .<span class="k">MoveY</span>(-40f, <span class="n">0.3f</span>).<span class="k">Ease</span>(Ease.OutCubic)
+    .<span class="k">Then</span>().<span class="k">MoveY</span>(<span class="n">0f</span>, <span class="n">0.5f</span>).<span class="k">Delay</span>(<span class="n">0.6f</span>).<span class="k">Ease</span>(Ease.OutBounce);   <span class="c">// rise, hold 0.6 s, fall</span></code></pre>
+
+<h2 id="loops">Loops</h2>
+<pre><code class="cs">var pulse = badge.<span class="k">Animate</span>().<span class="k">ScaleTo</span>(<span class="n">1.15f</span>, <span class="n">0.5f</span>).<span class="k">Ease</span>(Ease.InOutSine).<span class="k">Loop</span>(LoopMode.PingPong, <span class="n">0</span>);  <span class="c">// 0 = forever</span>
+spinner.<span class="k">Animate</span>().<span class="k">Rotate</span>(<span class="n">360f</span>, <span class="n">1f</span>).<span class="k">Loop</span>(LoopMode.Restart, <span class="n">0</span>);</code></pre>
+<p>Keep the handle of a loop that runs forever. Without it, the only way to stop it is
+<code>StopAnimations()</code> on the element.</p>
+
+<h2 id="bump-something-that-is-already-moving">Bump something that is already moving</h2>
+<pre><code class="cs">ship.<span class="k">Animate</span>().<span class="k">MoveX</span>(<span class="n">400f</span>, <span class="n">2f</span>);           <span class="c">// a long move</span>
+ship.<span class="k">Animate</span>().<span class="k">NudgeY</span>(-12f, <span class="n">0.15f</span>);       <span class="c">// a hit: adds a bump without stopping the move</span></code></pre>
+<p><code>MoveX</code> on an element that is already moving replaces that movement. <code>Nudge</code>,
+<code>NudgeX</code> and <code>NudgeY</code> add on top of it instead, which is what screen shake and hit
+reactions need.</p>
+
+<h2 id="count-a-number-up">Count a number up</h2>
+<pre><code class="cs">int from = shown, to = coins;
+scoreLabel.<span class="k">Animate</span>().<span class="k">Value</span>(<span class="n">0f</span>, <span class="n">1f</span>, <span class="n">0.6f</span>, t =&gt; scoreLabel.text = Mathf.<span class="k">RoundToInt</span>(Mathf.<span class="k">Lerp</span>(from, to, t)).<span class="k">ToString</span>())
+          .<span class="k">Ease</span>(Ease.OutCubic);</code></pre>
+
+<h2 id="respect-reduced-motion">Respect reduced motion</h2>
+<pre><code class="cs">MotionSettings.Mode = MotionMode.Reduced;   <span class="c">// Full, Reduced, Crossfade or None</span></code></pre>
+<p>Set it once from your accessibility settings. Every animation started afterwards follows it:
+<code>Reduced</code> shortens and calms motion, <code>Crossfade</code> replaces movement with fades, and
+<code>None</code> jumps to the end values. Callbacks and <code>await</code> still complete, so game logic
+waiting on an animation keeps working.</p>
+<p>For motion that carries meaning, such as a loading spinner, opt out:</p>
+<pre><code class="cs">spinner.<span class="k">Animate</span>().<span class="k">Rotate</span>(<span class="n">360f</span>, <span class="n">1f</span>).<span class="k">Loop</span>(LoopMode.Restart, <span class="n">0</span>).<span class="k">IgnoreReducedMotion</span>();</code></pre>
+
+<h2 id="common-mistakes">Common mistakes</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>What you see</th><th>Why</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td>The fade does nothing</td><td>The element is already at the target value</td><td>Add <code>From(0f)</code></td></tr>
+<tr><td>It animates but stays invisible</td><td>A previous <code>Hide()</code> left it at <code>display: none</code></td><td>Use <code>Show()</code>, not <code>AnimateIn()</code></td></tr>
+<tr><td><code>layout.x</code> or <code>layout.width</code> is 0</td><td>Read before the first layout pass</td><td>Read it in a <code>GeometryChangedEvent</code> callback</td></tr>
+<tr><td><code>OnComplete</code> never runs</td><td>The animation was cancelled or replaced, not finished</td><td>Use <code>OnSettled</code>, which runs either way</td></tr>
+<tr><td>A bump stops the movement</td><td><code>MoveX</code> replaces the running move</td><td>Use <code>NudgeX</code></td></tr>
+<tr><td>The animation stops when a screen closes</td><td>The element left the panel</td><td>Intended: Cascade cancels it so nothing writes to a closed screen</td></tr>
+<tr><td>A staggered list feels slow</td><td>The step is too large</td><td>0.04–0.08 s between items</td></tr>
+</tbody></table></div>
+</article>
+<nav class="pager" aria-label="Next and previous page"><a href="transitions.html">← Transitions</a><a href="no-code.html">No-code: UI Animator →</a></nav>
+</main>
+</div>
+<footer>twitched · Cascade, the animation library for Unity UI Toolkit · <a href="../../">twitchedd.github.io</a></footer>
+</body>
+</html>

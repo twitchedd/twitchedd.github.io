@@ -1,0 +1,107 @@
+order: 2
+group: Guides
+label: Animate a VisualElement
+title: How to animate a UI Toolkit VisualElement in Unity (USS transitions, scheduler, tweens)
+description: Four ways to animate a VisualElement in Unity UI Toolkit at runtime: USS transitions, the panel scheduler, the experimental animation API, and a tween library such as Cascade. Code and trade-offs for each.
+---
+<h1>How to animate a UI Toolkit VisualElement</h1>
+<p class="lede">Unity UI Toolkit has three built-in ways to animate a <code>VisualElement</code> at runtime:
+USS transitions, the panel scheduler, and the experimental animation API. They cover simple cases. For
+sequences, lists and interruptible motion, most projects end up writing their own tween layer or using a
+library.</p>
+<p>This page shows each option with working code and when to use it.</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Approach</th><th>Good for</th><th>Limits</th></tr></thead>
+<tbody>
+<tr><td>USS transitions</td><td>hover and state changes styled in USS</td><td>no sequencing, no completion callback beyond an event, needs a frame before it runs on a new element</td></tr>
+<tr><td>Panel scheduler</td><td>one custom effect</td><td>you write easing, timing, cancelling and cleanup yourself</td></tr>
+<tr><td><code>experimental.animation</code></td><td>quick one-off tweens</td><td>experimental API that can change between Unity versions; durations in milliseconds</td></tr>
+<tr><td>A tween library (Cascade)</td><td>sequences, lists, springs, transitions</td><td>a package to add</td></tr>
+</tbody></table></div>
+
+<h2>1. USS transitions</h2>
+<p>Declare which properties animate in USS, then change the element's class from C#. UI Toolkit animates
+between the two styles.</p>
+<pre><code class="css">.panel {
+    opacity: 0;
+    translate: 0 24px;
+    transition-property: opacity, translate;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out-cubic;
+}
+.panel--open {
+    opacity: 1;
+    translate: 0 0;
+}</code></pre>
+<pre><code class="cs">panel.EnableInClassList("panel--open", true);</code></pre>
+<p>This is the right tool for hover states and simple toggles, because the styling lives in USS with the
+rest of your look.</p>
+<p><strong>Things to know:</strong></p>
+<ul>
+<li>A class added in the same frame the element is created doesn't animate: the element has no previous
+style to animate from yet. Wait a frame, for example with <code>panel.schedule.Execute(() =&gt; panel.AddToClassList("panel--open"))</code>.</li>
+<li>There's no built-in way to run step B after step A, or to start ten list items one after another.</li>
+<li>To react when it ends, register for <code>TransitionEndEvent</code>. It fires once per property;
+an interrupted transition sends <code>TransitionCancelEvent</code> instead.</li>
+</ul>
+
+<h2>2. The panel scheduler</h2>
+<p>Every element has a scheduler that runs code on the panel's update. You can drive any style value
+from it:</p>
+<pre><code class="cs">void FadeIn(VisualElement el, float duration)
+{
+    float start = Time.unscaledTime;
+    IVisualElementScheduledItem item = null;
+    item = el.schedule.Execute(() =&gt;
+    {
+        if (el.panel == null) { item.Pause(); return; }   // the element left the screen
+        float t = Mathf.Clamp01((Time.unscaledTime - start) / duration);
+        float eased = 1f - Mathf.Pow(1f - t, 3f);          // ease-out cubic
+        el.style.opacity = eased;
+        if (t &gt;= 1f) item.Pause();
+    }).Every(0);
+}</code></pre>
+<p>This gives you full control, and it's what most hand-written UI Toolkit tweening looks like. The cost
+is that every effect repeats the same work: easing, the start value, stopping a previous animation on the
+same element, and stopping when the element is removed. Most projects end up wrapping it in a small tween
+helper, which grows into a library over time.</p>
+
+<h2>3. The experimental animation API</h2>
+<p>UI Toolkit includes a small tween API under <code>element.experimental.animation</code>:</p>
+<pre><code class="cs">using UnityEngine.UIElements.Experimental;
+
+el.experimental.animation
+  .Start(new StyleValues { opacity = 0f }, new StyleValues { opacity = 1f }, 300)   // milliseconds
+  .Ease(Easing.OutCubic);</code></pre>
+<p>It works for one-off tweens. It sits in the <code>Experimental</code> namespace, so it can change between
+Unity versions, and it has no sequencing, staggering or springs.</p>
+
+<h2>4. A tween library: Cascade</h2>
+<p>Cascade is a runtime animation library built for UI Toolkit. The same fade-and-rise as above is one
+call, and it handles the parts the scheduler version leaves to you: easing, start values, replacing an
+animation that's already running, and cancelling when the element leaves the panel.</p>
+<pre><code class="cs">using Cascade;
+
+panel.Animate()
+     .Fade(1f, 0.3f).From(0f).Ease(Ease.OutCubic)
+     .MoveY(0f, 0.3f).From(24f).Ease(Ease.OutCubic);</code></pre>
+<p>Sequences chain with <code>Then()</code>, and every animation can be awaited:</p>
+<pre><code class="cs">await title.Animate().Fade(1f, 0.4f).From(0f);
+await button.Animate().ScaleTo(1f, 0.3f).From(0.8f).Ease(Ease.OutBack);</code></pre>
+<p>Cascade Lite is free and MIT licensed, and covers everything on this page.
+<a href="spring-animation.html">Springs</a>, <a href="stagger-list.html">staggered lists</a> and
+<a href="transitions.html">screen transitions</a> are in Pro.</p>
+<p><a class="cta" href="https://assetstore.unity.com/packages/slug/394764">Get Cascade Lite (free)</a>
+<a class="cta" href="getting-started.html">Getting started</a></p>
+
+<h2>Which one should you use?</h2>
+<ul>
+<li><strong>A hover color or a toggle styled in USS:</strong> USS transitions.</li>
+<li><strong>One unusual effect, such as a custom shader value:</strong> the scheduler, or Cascade's <code>Value</code> verb.</li>
+<li><strong>Panels that slide in, then something else happens:</strong> a tween library, so the steps run in order and stop cleanly.</li>
+<li><strong>Lists, interruptible buttons, screen changes:</strong> a library with stagger, springs and transitions.</li>
+</ul>
+<p>Animate <code>translate</code>, <code>scale</code>, <code>rotate</code> and <code>opacity</code> where
+you can. They don't trigger layout. Animating <code>width</code>, <code>height</code>, <code>top</code> or
+<code>left</code> re-runs layout every frame, which is fine for one accordion but slow for many elements.</p>

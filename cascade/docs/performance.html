@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UI Toolkit animation performance: zero GC, lifecycle safety and channels in Cascade</title>
+<meta name="description" content="How Cascade animates Unity UI Toolkit without per-frame garbage, which properties are cheap to animate, how animations stop when elements leave the panel, how replacing and per-property stopping work, and how to measure load.">
+<link rel="canonical" href="https://twitchedd.github.io/cascade/docs/performance.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UI Toolkit animation performance: zero GC, lifecycle safety and channels in Cascade">
+<meta property="og:description" content="How Cascade animates Unity UI Toolkit without per-frame garbage, which properties are cheap to animate, how animations stop when elements leave the panel, how replacing and per-property stopping work, and how to measure load.">
+<meta property="og:url" content="https://twitchedd.github.io/cascade/docs/performance.html">
+<meta property="og:image" content="https://twitchedd.github.io/img/cover.png">
+<link rel="icon" href="../../img/avatar.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="docs.css">
+<script src="search.js" defer></script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "TechArticle",
+ "headline": "UI Toolkit animation performance: zero GC, lifecycle safety and channels in Cascade",
+ "description": "How Cascade animates Unity UI Toolkit without per-frame garbage, which properties are cheap to animate, how animations stop when elements leave the panel, how replacing and per-property stopping work, and how to measure load.",
+ "url": "https://twitchedd.github.io/cascade/docs/performance.html",
+ "author": {
+  "@type": "Organization",
+  "name": "twitched",
+  "url": "https://twitchedd.github.io/"
+ },
+ "about": {
+  "@type": "SoftwareApplication",
+  "name": "Cascade",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Unity 6000.0 or later",
+  "description": "Animation library for Unity UI Toolkit: tweens, springs, stagger and transitions.",
+  "offers": [
+   {
+    "@type": "Offer",
+    "name": "Cascade Lite",
+    "price": "0",
+    "priceCurrency": "USD",
+    "url": "https://assetstore.unity.com/packages/slug/394764"
+   },
+   {
+    "@type": "Offer",
+    "name": "Cascade Pro",
+    "url": "https://assetstore.unity.com/packages/slug/394760"
+   }
+  ]
+ }
+}
+</script>
+</head>
+<body>
+<div class="layout">
+<nav class="side" aria-label="Cascade docs">
+  <a class="home" href="../../">twitched<span>_</span></a>
+  <div class="search" role="search">
+    <input id="q" type="search" placeholder="Search docs  /" aria-label="Search the docs" autocomplete="off" spellcheck="false">
+    <ul id="results" role="listbox" hidden></ul>
+  </div>
+  <p class="group">Start</p>
+  <ul>
+    <li><a href="index.html">Overview</a></li>
+    <li><a href="getting-started.html">Getting started</a></li>
+  </ul>
+  <p class="group">Guides</p>
+  <ul>
+    <li><a href="animate-visualelement.html">Animate a VisualElement</a></li>
+    <li><a href="spring-animation.html">Spring animation</a></li>
+    <li><a href="stagger-list.html">Stagger a list</a></li>
+    <li><a href="transitions.html">Transitions</a></li>
+    <li><a href="recipes.html">Recipes</a></li>
+    <li><a href="no-code.html">No-code: UI Animator</a></li>
+    <li><a href="effects.html">Shadow, glow and filters</a></li>
+    <li><a href="framer-motion.html">Coming from Framer Motion</a></li>
+    <li><a href="performance.html" aria-current="page">Performance and lifecycle</a></li>
+    <li><a href="ai-and-skill.html">AI assistants and skill</a></li>
+  </ul>
+  <p class="group">Reference</p>
+  <ul>
+    <li><a href="easing.html">Easing curves</a></li>
+    <li><a href="api.html">API reference</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+  <p class="group">Get it</p>
+  <ul>
+    <li><a href="https://assetstore.unity.com/packages/slug/394764">Cascade Lite (free)</a></li>
+    <li><a href="https://assetstore.unity.com/packages/slug/394760">Cascade Pro</a></li>
+  </ul>
+</nav>
+<main class="doc">
+<article>
+<h1>Performance and lifecycle</h1>
+<p class="lede">What Cascade does every frame, what it costs, and what happens to an animation when the
+UI around it changes.</p>
+
+<h2 id="what-runs-each-frame">What runs each frame</h2>
+<ul>
+<li>One scheduler tick per UI panel drives every animation on that panel. Cascade doesn't use
+<code>Update()</code>, coroutines or a MonoBehaviour.</li>
+<li><strong>No per-frame garbage.</strong> Tweens are pooled and reused, and the update loop makes no
+allocations. The test suite checks this by measuring GC allocations while stepping many animations.</li>
+<li>Values are computed in plain C# and written to <code>style</code>. Cascade doesn't depend on Unity's
+experimental animation API.</li>
+<li>Animations run on unscaled time, so a paused game (<code>Time.timeScale = 0</code>) still animates its pause menu.</li>
+</ul>
+
+<h2 id="cheap-and-expensive-properties">Cheap and expensive properties</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Verbs</th><th>Property</th><th>Cost</th></tr></thead>
+<tbody>
+<tr><td><code>Fade</code>, <code>MoveX/Y/To</code>, <code>Nudge</code>, <code>ScaleTo</code>, <code>Rotate</code>, <code>SlideIn</code></td><td>opacity and transforms</td><td>cheap: no layout</td></tr>
+<tr><td><code>BackgroundColor</code>, <code>TextColor</code></td><td>colors</td><td>cheap: repaint only</td></tr>
+<tr><td><code>Width</code>, <code>Height</code>, <code>Size</code>, <code>Top</code>, <code>Left</code></td><td>layout</td><td>re-runs layout each frame</td></tr>
+<tr><td><code>BlurTo</code>, <code>TintTo</code> (Pro, Unity 6.3+)</td><td>filter</td><td>an extra render pass each frame</td></tr>
+</tbody></table></div>
+<p>Animate many elements with the cheap verbs. Use the layout verbs where the box really has to resize,
+such as an accordion.</p>
+<p>For very large groups, such as hundreds of grid cells, Pro's <code>AnimateAll</code> and
+<code>StaggerFade</code> run one shared animation for the whole group instead of one per element. See the
+<a href="api.html#VisualElementAnimationExtensions">API reference</a>.</p>
+
+<h2 id="when-the-element-leaves-the-screen">When the element leaves the screen</h2>
+<p>An animation cancels itself when its element is removed from the panel, for example when a screen
+closes or a list row is recycled. Cascade never writes to an element that is no longer displayed. A
+cancelled animation doesn't call <code>OnComplete</code>; <code>OnSettled</code> receives
+<code>false</code>, and <code>await</code> returns <code>false</code>.</p>
+
+<h2 id="starting-a-new-animation-on-a-moving-element">Starting a new animation on a moving element</h2>
+<p>Each property is a <strong>channel</strong>: opacity, translate X, translate Y, scale, rotate, width,
+height, top, left. Starting a new animation on a channel replaces the one already running on it, from the
+current value, so there is no jump. Other channels keep going: a new fade doesn't stop a move.</p>
+<p>A replaced animation counts as cancelled, so it never calls <code>OnComplete</code>. Use
+<code>OnSettled</code> for anything that must happen either way. In Pro, a replaced spring hands its
+velocity to the new animation.</p>
+<p><code>Nudge</code>, <code>NudgeX</code> and <code>NudgeY</code> don't claim a channel. They add on top of
+whatever is moving the element.</p>
+
+<h2 id="stopping">Stopping</h2>
+<pre><code class="cs">var h = el.<span class="k">Animate</span>().<span class="k">Fade</span>(<span class="n">1f</span>, <span class="n">0.3f</span>);
+h.<span class="k">Cancel</span>();                                       <span class="c">// this animation</span>
+el.<span class="k">StopAnimations</span>();                              <span class="c">// everything on the element</span>
+el.<span class="k">StopAnimations</span>(MotionChannel.Opacity);         <span class="c">// one property; the rest keeps going</span></code></pre>
+<p>Stopping leaves the element where it is. An animation that reaches its end on its own snaps exactly
+to its target.</p>
+
+<h2 id="measuring">Measuring</h2>
+<pre><code class="cs">Debug.<span class="k">Log</span>(MotionSettings.Stats);   <span class="c">// active panels, sequences and tweens, plus pooled tweens</span></code></pre>
+<p><code>MotionSettings.Stats</code> is allocation-free. Show it on a debug overlay, or check in a test that
+animations really stopped.</p>
+
+<h2 id="platforms">Platforms</h2>
+<p>Cascade is pure C# with no native code and no dependencies. It runs wherever UI Toolkit runs in Unity
+6000.0 and later. Each release is tested in the editor and in a built standalone player.</p>
+</article>
+<nav class="pager" aria-label="Next and previous page"><a href="framer-motion.html">← Coming from Framer Motion</a><a href="ai-and-skill.html">AI assistants and skill →</a></nav>
+</main>
+</div>
+<footer>twitched · Cascade, the animation library for Unity UI Toolkit · <a href="../../">twitchedd.github.io</a></footer>
+</body>
+</html>

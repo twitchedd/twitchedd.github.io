@@ -1,0 +1,215 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/twitched/cascade/cascade-sequence.schema.json",
+  "title": "Cascade sequence",
+  "description": "A declarative UI Toolkit animation for Cascade. Steps run sequentially; the actions within a step run in parallel. Accepted by SequencePreset.FromJson / TryFromJson / PlayJson. Durations are in seconds. See AI-GUIDE.md.",
+  "type": "object",
+  "required": [
+    "steps"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Ordered steps; each starts when the previous finishes.",
+      "items": {
+        "$ref": "#/definitions/step"
+      }
+    }
+  },
+  "definitions": {
+    "step": {
+      "type": "object",
+      "required": [
+        "actions"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "actions": {
+          "type": "array",
+          "description": "Actions that play together (in parallel) within this step.",
+          "items": {
+            "$ref": "#/definitions/action"
+          }
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "required": [
+        "verb"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "verb": {
+                "enum": [
+                  "Fade",
+                  "MoveX",
+                  "MoveY",
+                  "Scale",
+                  "Rotate",
+                  "Width",
+                  "Height",
+                  "Top",
+                  "Left",
+                  "Nudge"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "to"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "verb": {
+                "enum": [
+                  "MoveTo",
+                  "Size"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "x",
+              "y"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "verb": {
+                "enum": [
+                  "BackgroundColor",
+                  "TextColor"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "color"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "verb": {
+          "type": "string",
+          "enum": [
+            "Fade",
+            "MoveX",
+            "MoveY",
+            "MoveTo",
+            "Scale",
+            "Rotate",
+            "SlideIn",
+            "BackgroundColor",
+            "TextColor",
+            "Width",
+            "Height",
+            "Size",
+            "Top",
+            "Left"
+          ],
+          "description": "Which property to animate. Fade/MoveX/MoveY/Scale/Rotate/Width/Height/Top/Left use 'to'; MoveTo/Size use 'x'/'y'; BackgroundColor/TextColor use 'color'; SlideIn uses 'edge'/'distance'. Width/Height/Size/Top/Left reflow layout."
+        },
+        "to": {
+          "type": "number",
+          "description": "Target value for float-target verbs. Opacity 0-1; Scale is a multiplier (1 = natural size); Rotate in degrees; others in px."
+        },
+        "from": {
+          "type": "number",
+          "description": "Explicit START value. Omitted, the action begins wherever the element already is - so \"to\": 1 on a visible element is a legitimate no-op. An entrance must state its from (e.g. \"from\": 0, \"to\": 1 to fade in). Float-target verbs only."
+        },
+        "x": {
+          "type": "number",
+          "description": "X target for MoveTo (px) / width for Size (px)."
+        },
+        "y": {
+          "type": "number",
+          "description": "Y target for MoveTo (px) / height for Size (px)."
+        },
+        "color": {
+          "type": "string",
+          "description": "Color for BackgroundColor/TextColor: '#RRGGBB', '#RRGGBBAA', or a named color.",
+          "pattern": "^(#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?|[a-zA-Z]+)$"
+        },
+        "edge": {
+          "type": "string",
+          "enum": [
+            "Left",
+            "Right",
+            "Top",
+            "Bottom"
+          ],
+          "description": "Edge to slide in from (SlideIn)."
+        },
+        "distance": {
+          "type": "number",
+          "minimum": 0,
+          "default": 48,
+          "description": "How far (px) the element starts off-rest for SlideIn."
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 600,
+          "default": 0.3,
+          "description": "Duration in SECONDS (0.3 = 300 ms). Capped at 600 (10 min); longer is treated as a generation error."
+        },
+        "delay": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 600,
+          "default": 0,
+          "description": "Delay in seconds before this action starts. Capped at 600 (10 min)."
+        },
+        "ease": {
+          "type": "string",
+          "enum": [
+            "Linear",
+            "InSine",
+            "OutSine",
+            "InOutSine",
+            "InQuad",
+            "OutQuad",
+            "InOutQuad",
+            "InCubic",
+            "OutCubic",
+            "InOutCubic",
+            "OutQuart",
+            "OutExpo",
+            "OutCirc",
+            "InBack",
+            "OutBack",
+            "InOutBack",
+            "OutElastic",
+            "OutBounce"
+          ],
+          "default": "OutCubic",
+          "description": "Easing curve. Ignored when 'spring' is set."
+        },
+        "spring": {
+          "type": "string",
+          "enum": [
+            "Gentle",
+            "Snappy",
+            "Bouncy"
+          ],
+          "description": "Use a physics spring instead of an easing curve. Overrides 'ease'."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,68 @@
+order: 10
+group: Guides
+label: Performance and lifecycle
+title: UI Toolkit animation performance: zero GC, lifecycle safety and channels in Cascade
+description: How Cascade animates Unity UI Toolkit without per-frame garbage, which properties are cheap to animate, how animations stop when elements leave the panel, how replacing and per-property stopping work, and how to measure load.
+---
+<h1>Performance and lifecycle</h1>
+<p class="lede">What Cascade does every frame, what it costs, and what happens to an animation when the
+UI around it changes.</p>
+
+<h2>What runs each frame</h2>
+<ul>
+<li>One scheduler tick per UI panel drives every animation on that panel. Cascade doesn't use
+<code>Update()</code>, coroutines or a MonoBehaviour.</li>
+<li><strong>No per-frame garbage.</strong> Tweens are pooled and reused, and the update loop makes no
+allocations. The test suite checks this by measuring GC allocations while stepping many animations.</li>
+<li>Values are computed in plain C# and written to <code>style</code>. Cascade doesn't depend on Unity's
+experimental animation API.</li>
+<li>Animations run on unscaled time, so a paused game (<code>Time.timeScale = 0</code>) still animates its pause menu.</li>
+</ul>
+
+<h2>Cheap and expensive properties</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Verbs</th><th>Property</th><th>Cost</th></tr></thead>
+<tbody>
+<tr><td><code>Fade</code>, <code>MoveX/Y/To</code>, <code>Nudge</code>, <code>ScaleTo</code>, <code>Rotate</code>, <code>SlideIn</code></td><td>opacity and transforms</td><td>cheap: no layout</td></tr>
+<tr><td><code>BackgroundColor</code>, <code>TextColor</code></td><td>colors</td><td>cheap: repaint only</td></tr>
+<tr><td><code>Width</code>, <code>Height</code>, <code>Size</code>, <code>Top</code>, <code>Left</code></td><td>layout</td><td>re-runs layout each frame</td></tr>
+<tr><td><code>BlurTo</code>, <code>TintTo</code> (Pro, Unity 6.3+)</td><td>filter</td><td>an extra render pass each frame</td></tr>
+</tbody></table></div>
+<p>Animate many elements with the cheap verbs. Use the layout verbs where the box really has to resize,
+such as an accordion.</p>
+<p>For very large groups, such as hundreds of grid cells, Pro's <code>AnimateAll</code> and
+<code>StaggerFade</code> run one shared animation for the whole group instead of one per element. See the
+<a href="api.html#VisualElementAnimationExtensions">API reference</a>.</p>
+
+<h2>When the element leaves the screen</h2>
+<p>An animation cancels itself when its element is removed from the panel, for example when a screen
+closes or a list row is recycled. Cascade never writes to an element that is no longer displayed. A
+cancelled animation doesn't call <code>OnComplete</code>; <code>OnSettled</code> receives
+<code>false</code>, and <code>await</code> returns <code>false</code>.</p>
+
+<h2>Starting a new animation on a moving element</h2>
+<p>Each property is a <strong>channel</strong>: opacity, translate X, translate Y, scale, rotate, width,
+height, top, left. Starting a new animation on a channel replaces the one already running on it, from the
+current value, so there is no jump. Other channels keep going: a new fade doesn't stop a move.</p>
+<p>A replaced animation counts as cancelled, so it never calls <code>OnComplete</code>. Use
+<code>OnSettled</code> for anything that must happen either way. In Pro, a replaced spring hands its
+velocity to the new animation.</p>
+<p><code>Nudge</code>, <code>NudgeX</code> and <code>NudgeY</code> don't claim a channel. They add on top of
+whatever is moving the element.</p>
+
+<h2>Stopping</h2>
+<pre><code class="cs">var h = el.Animate().Fade(1f, 0.3f);
+h.Cancel();                                       // this animation
+el.StopAnimations();                              // everything on the element
+el.StopAnimations(MotionChannel.Opacity);         // one property; the rest keeps going</code></pre>
+<p>Stopping leaves the element where it is. An animation that reaches its end on its own snaps exactly
+to its target.</p>
+
+<h2>Measuring</h2>
+<pre><code class="cs">Debug.Log(MotionSettings.Stats);   // active panels, sequences and tweens, plus pooled tweens</code></pre>
+<p><code>MotionSettings.Stats</code> is allocation-free. Show it on a debug overlay, or check in a test that
+animations really stopped.</p>
+
+<h2>Platforms</h2>
+<p>Cascade is pure C# with no native code and no dependencies. It runs wherever UI Toolkit runs in Unity
+6000.0 and later. Each release is tested in the editor and in a built standalone player.</p>

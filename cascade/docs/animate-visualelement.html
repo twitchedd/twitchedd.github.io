@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to animate a UI Toolkit VisualElement in Unity (USS transitions, scheduler, tweens)</title>
+<meta name="description" content="Four ways to animate a VisualElement in Unity UI Toolkit at runtime: USS transitions, the panel scheduler, the experimental animation API, and a tween library such as Cascade. Code and trade-offs for each.">
+<link rel="canonical" href="https://twitchedd.github.io/cascade/docs/animate-visualelement.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How to animate a UI Toolkit VisualElement in Unity (USS transitions, scheduler, tweens)">
+<meta property="og:description" content="Four ways to animate a VisualElement in Unity UI Toolkit at runtime: USS transitions, the panel scheduler, the experimental animation API, and a tween library such as Cascade. Code and trade-offs for each.">
+<meta property="og:url" content="https://twitchedd.github.io/cascade/docs/animate-visualelement.html">
+<meta property="og:image" content="https://twitchedd.github.io/img/cover.png">
+<link rel="icon" href="../../img/avatar.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="docs.css">
+<script src="search.js" defer></script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "TechArticle",
+ "headline": "How to animate a UI Toolkit VisualElement in Unity (USS transitions, scheduler, tweens)",
+ "description": "Four ways to animate a VisualElement in Unity UI Toolkit at runtime: USS transitions, the panel scheduler, the experimental animation API, and a tween library such as Cascade. Code and trade-offs for each.",
+ "url": "https://twitchedd.github.io/cascade/docs/animate-visualelement.html",
+ "author": {
+  "@type": "Organization",
+  "name": "twitched",
+  "url": "https://twitchedd.github.io/"
+ },
+ "about": {
+  "@type": "SoftwareApplication",
+  "name": "Cascade",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Unity 6000.0 or later",
+  "description": "Animation library for Unity UI Toolkit: tweens, springs, stagger and transitions.",
+  "offers": [
+   {
+    "@type": "Offer",
+    "name": "Cascade Lite",
+    "price": "0",
+    "priceCurrency": "USD",
+    "url": "https://assetstore.unity.com/packages/slug/394764"
+   },
+   {
+    "@type": "Offer",
+    "name": "Cascade Pro",
+    "url": "https://assetstore.unity.com/packages/slug/394760"
+   }
+  ]
+ }
+}
+</script>
+</head>
+<body>
+<div class="layout">
+<nav class="side" aria-label="Cascade docs">
+  <a class="home" href="../../">twitched<span>_</span></a>
+  <div class="search" role="search">
+    <input id="q" type="search" placeholder="Search docs  /" aria-label="Search the docs" autocomplete="off" spellcheck="false">
+    <ul id="results" role="listbox" hidden></ul>
+  </div>
+  <p class="group">Start</p>
+  <ul>
+    <li><a href="index.html">Overview</a></li>
+    <li><a href="getting-started.html">Getting started</a></li>
+  </ul>
+  <p class="group">Guides</p>
+  <ul>
+    <li><a href="animate-visualelement.html" aria-current="page">Animate a VisualElement</a></li>
+    <li><a href="spring-animation.html">Spring animation</a></li>
+    <li><a href="stagger-list.html">Stagger a list</a></li>
+    <li><a href="transitions.html">Transitions</a></li>
+    <li><a href="recipes.html">Recipes</a></li>
+    <li><a href="no-code.html">No-code: UI Animator</a></li>
+    <li><a href="effects.html">Shadow, glow and filters</a></li>
+    <li><a href="framer-motion.html">Coming from Framer Motion</a></li>
+    <li><a href="performance.html">Performance and lifecycle</a></li>
+    <li><a href="ai-and-skill.html">AI assistants and skill</a></li>
+  </ul>
+  <p class="group">Reference</p>
+  <ul>
+    <li><a href="easing.html">Easing curves</a></li>
+    <li><a href="api.html">API reference</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+  <p class="group">Get it</p>
+  <ul>
+    <li><a href="https://assetstore.unity.com/packages/slug/394764">Cascade Lite (free)</a></li>
+    <li><a href="https://assetstore.unity.com/packages/slug/394760">Cascade Pro</a></li>
+  </ul>
+</nav>
+<main class="doc">
+<article>
+<h1>How to animate a UI Toolkit VisualElement</h1>
+<p class="lede">Unity UI Toolkit has three built-in ways to animate a <code>VisualElement</code> at runtime:
+USS transitions, the panel scheduler, and the experimental animation API. They cover simple cases. For
+sequences, lists and interruptible motion, most projects end up writing their own tween layer or using a
+library.</p>
+<p>This page shows each option with working code and when to use it.</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Approach</th><th>Good for</th><th>Limits</th></tr></thead>
+<tbody>
+<tr><td>USS transitions</td><td>hover and state changes styled in USS</td><td>no sequencing, no completion callback beyond an event, needs a frame before it runs on a new element</td></tr>
+<tr><td>Panel scheduler</td><td>one custom effect</td><td>you write easing, timing, cancelling and cleanup yourself</td></tr>
+<tr><td><code>experimental.animation</code></td><td>quick one-off tweens</td><td>experimental API that can change between Unity versions; durations in milliseconds</td></tr>
+<tr><td>A tween library (Cascade)</td><td>sequences, lists, springs, transitions</td><td>a package to add</td></tr>
+</tbody></table></div>
+
+<h2 id="1-uss-transitions">1. USS transitions</h2>
+<p>Declare which properties animate in USS, then change the element's class from C#. UI Toolkit animates
+between the two styles.</p>
+<pre><code class="css">.panel {
+    opacity: 0;
+    translate: 0 24px;
+    transition-property: opacity, translate;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out-cubic;
+}
+.panel--open {
+    opacity: 1;
+    translate: 0 0;
+}</code></pre>
+<pre><code class="cs">panel.<span class="k">EnableInClassList</span>("panel--open", true);</code></pre>
+<p>This is the right tool for hover states and simple toggles, because the styling lives in USS with the
+rest of your look.</p>
+<p><strong>Things to know:</strong></p>
+<ul>
+<li>A class added in the same frame the element is created doesn't animate: the element has no previous
+style to animate from yet. Wait a frame, for example with <code>panel.schedule.Execute(() =&gt; panel.AddToClassList("panel--open"))</code>.</li>
+<li>There's no built-in way to run step B after step A, or to start ten list items one after another.</li>
+<li>To react when it ends, register for <code>TransitionEndEvent</code>. It fires once per property;
+an interrupted transition sends <code>TransitionCancelEvent</code> instead.</li>
+</ul>
+
+<h2 id="2-the-panel-scheduler">2. The panel scheduler</h2>
+<p>Every element has a scheduler that runs code on the panel's update. You can drive any style value
+from it:</p>
+<pre><code class="cs">void FadeIn(VisualElement el, float duration)
+{
+    float start = Time.unscaledTime;
+    IVisualElementScheduledItem item = null;
+    item = el.schedule.<span class="k">Execute</span>(() =&gt;
+    {
+        if (el.panel == null) { item.<span class="k">Pause</span>(); return; }   <span class="c">// the element left the screen</span>
+        float t = Mathf.<span class="k">Clamp01</span>((Time.unscaledTime - start) / duration);
+        float eased = <span class="n">1f</span> - Mathf.<span class="k">Pow</span>(<span class="n">1f</span> - t, <span class="n">3f</span>);          <span class="c">// ease-out cubic</span>
+        el.style.opacity = eased;
+        if (t &gt;= <span class="n">1f</span>) item.<span class="k">Pause</span>();
+    }).<span class="k">Every</span>(<span class="n">0</span>);
+}</code></pre>
+<p>This gives you full control, and it's what most hand-written UI Toolkit tweening looks like. The cost
+is that every effect repeats the same work: easing, the start value, stopping a previous animation on the
+same element, and stopping when the element is removed. Most projects end up wrapping it in a small tween
+helper, which grows into a library over time.</p>
+
+<h2 id="3-the-experimental-animation-api">3. The experimental animation API</h2>
+<p>UI Toolkit includes a small tween API under <code>element.experimental.animation</code>:</p>
+<pre><code class="cs">using UnityEngine.UIElements.Experimental;
+
+el.experimental.animation
+  .<span class="k">Start</span>(new StyleValues { opacity = <span class="n">0f</span> }, new StyleValues { opacity = <span class="n">1f</span> }, <span class="n">300</span>)   <span class="c">// milliseconds</span>
+  .<span class="k">Ease</span>(Easing.OutCubic);</code></pre>
+<p>It works for one-off tweens. It sits in the <code>Experimental</code> namespace, so it can change between
+Unity versions, and it has no sequencing, staggering or springs.</p>
+
+<h2 id="4-a-tween-library-cascade">4. A tween library: Cascade</h2>
+<p>Cascade is a runtime animation library built for UI Toolkit. The same fade-and-rise as above is one
+call, and it handles the parts the scheduler version leaves to you: easing, start values, replacing an
+animation that's already running, and cancelling when the element leaves the panel.</p>
+<pre><code class="cs">using Cascade;
+
+panel.<span class="k">Animate</span>()
+     .<span class="k">Fade</span>(<span class="n">1f</span>, <span class="n">0.3f</span>).<span class="k">From</span>(<span class="n">0f</span>).<span class="k">Ease</span>(Ease.OutCubic)
+     .<span class="k">MoveY</span>(<span class="n">0f</span>, <span class="n">0.3f</span>).<span class="k">From</span>(<span class="n">24f</span>).<span class="k">Ease</span>(Ease.OutCubic);</code></pre>
+<p>Sequences chain with <code>Then()</code>, and every animation can be awaited:</p>
+<pre><code class="cs">await title.<span class="k">Animate</span>().<span class="k">Fade</span>(<span class="n">1f</span>, <span class="n">0.4f</span>).<span class="k">From</span>(<span class="n">0f</span>);
+await button.<span class="k">Animate</span>().<span class="k">ScaleTo</span>(<span class="n">1f</span>, <span class="n">0.3f</span>).<span class="k">From</span>(<span class="n">0.8f</span>).<span class="k">Ease</span>(Ease.OutBack);</code></pre>
+<p>Cascade Lite is free and MIT licensed, and covers everything on this page.
+<a href="spring-animation.html">Springs</a>, <a href="stagger-list.html">staggered lists</a> and
+<a href="transitions.html">screen transitions</a> are in Pro.</p>
+<p><a class="cta" href="https://assetstore.unity.com/packages/slug/394764">Get Cascade Lite (free)</a>
+<a class="cta" href="getting-started.html">Getting started</a></p>
+
+<h2 id="which-one-should-you-use">Which one should you use?</h2>
+<ul>
+<li><strong>A hover color or a toggle styled in USS:</strong> USS transitions.</li>
+<li><strong>One unusual effect, such as a custom shader value:</strong> the scheduler, or Cascade's <code>Value</code> verb.</li>
+<li><strong>Panels that slide in, then something else happens:</strong> a tween library, so the steps run in order and stop cleanly.</li>
+<li><strong>Lists, interruptible buttons, screen changes:</strong> a library with stagger, springs and transitions.</li>
+</ul>
+<p>Animate <code>translate</code>, <code>scale</code>, <code>rotate</code> and <code>opacity</code> where
+you can. They don't trigger layout. Animating <code>width</code>, <code>height</code>, <code>top</code> or
+<code>left</code> re-runs layout every frame, which is fine for one accordion but slow for many elements.</p>
+</article>
+<nav class="pager" aria-label="Next and previous page"><a href="getting-started.html">← Getting started</a><a href="spring-animation.html">Spring animation →</a></nav>
+</main>
+</div>
+<footer>twitched · Cascade, the animation library for Unity UI Toolkit · <a href="../../">twitchedd.github.io</a></footer>
+</body>
+</html>
