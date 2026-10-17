@@ -19,3 +19,9 @@
 - [Easing curves](https://twitchedd.github.io/cascade/docs/easing.html): All 28 easing functions in Cascade for Unity UI Toolkit, drawn as curves, with which to use for entrances, exits, pop-ins and loops, plus custom AnimationCurve easing.
 - [API reference](https://twitchedd.github.io/cascade/docs/api.html): Every public type and method in Cascade, the animation library for Unity UI Toolkit: Animate, TweenSequence verbs, easing, springs, stagger, transitions, interactions, variants, settings, JSON sequences and effects. Lite and Pro marked.
 - [FAQ](https://twitchedd.github.io/cascade/docs/faq.html): Answers about Cascade for Unity UI Toolkit: Unity versions, uGUI support, Lite vs Pro, upgrading, licensing, platforms, performance, USS transitions, and getting help.
+
+## Examples
+
+- [Cascade Audio Studio (play in browser)](https://twitchedd.itch.io/cascade-audio-studio): A music player built in Unity UI Toolkit and animated with Cascade, where the whole UI follows the song: fire, lasers and rain driven by beat detection and a loudness level, a scratchable record, mixer faders and pause that freezes every effect.
+- [Audio-reactive UI in Unity UI Toolkit (write-up)](https://medium.com/@dldesing/audio-reactive-ui-in-unity-ui-toolkit-fire-lasers-and-rain-that-follow-the-music-f18d74d7385a): How the Audio Studio drives UI Toolkit effects from music with Cascade tweens: one Value tween re-themes the screen, looping tweens for fire, lasers and rain, beat and loudness signals, a turntable motor, and the bugs fixed along the way.
+- [Cascade Blocks (play in browser)](https://twitchedd.itch.io/cascade-blocks): A falling-block game whose UI motion is all Cascade: menu stagger, screen transitions, line-clear sweep and score count-up.
