@@ -174,32 +174,35 @@ el.<span class="k">Animate</span>().<span class="k">MoveY</span>(<span class="n"
     <figcaption>Audio Studio — one tween re-themes the room between genres; recorded from the real scene.</figcaption>
   </figure>
 
-  <h3 style="margin-top:56px">Four demo screens <span class="badge">Pro · next update</span></h3>
+  <h3 style="margin-top:56px">Four demo screens <span class="badge">Pro · new in 1.2.0</span></h3>
   <p class="muted">Real interfaces, not three buttons on a grey background: each is a complete Unity UI
      Toolkit scene animated with Cascade, with a short commented driver script to learn from. They ship
-     as samples with Cascade Pro; the clips below are recorded from the scenes, not mocked up.</p>
+     as samples with Cascade Pro, and 1.2.0 redesigned three of them. The clips below are recorded from
+     the scenes, not mocked up.</p>
 
   <div class="demos">
     <article class="demo">
-      <video src="media/sample-hud.mp4" poster="media/sample-hud.jpg" autoplay muted loop playsinline
-             aria-label="Starfall Combat HUD: taking hits drains the health bar, the screen shakes, a wave banner appears."></video>
+      <video src="media/sample-hud-v2.mp4" poster="media/sample-hud-v2.jpg" autoplay muted loop playsinline
+             aria-label="Starfall Combat HUD: a hit flashes the screen and drops a damage number, a wave banner slams in, and Overdrive turns the HUD amber."></video>
       <div>
         <h4>Starfall Combat HUD</h4>
-        <p>An in-game overlay for a space shooter: a health bar with a delayed damage chip, screen shake,
-           floating damage numbers, hotbar cooldowns, a wave banner and a live minimap.</p>
-        <p class="tags">Value tweens · additive Nudge · springs · stagger · looping</p>
-        <p class="read">read: RollHull(), TakeHit(), NextWave()</p>
+        <p>A neon cockpit HUD over a space shooter: hits drain a shield arc and then the hull, a WAVE
+           banner slams in while new enemies warp onto the radar, a lock-on reticle spins onto targets,
+           and Overdrive turns the whole HUD amber for five seconds.</p>
+        <p class="tags">Value tweens · additive Nudge · springs · stagger · Painter2D</p>
+        <p class="read">read: RollHull(), TakeHit(), LockOn(), NextWave(), Overdrive()</p>
       </div>
     </article>
     <article class="demo">
-      <video src="media/sample-shop.mp4" poster="media/sample-shop.jpg" autoplay muted loop playsinline
-             aria-label="Pocket Shop: items are added to the bag with a flying dot, then a product detail panel opens."></video>
+      <video src="media/sample-shop-v2.mp4" poster="media/sample-shop-v2.jpg" autoplay muted loop playsinline
+             aria-label="The Gilded Anvil: a bought ware arcs into the satchel, a PURCHASED stamp lands on its card, and a chest drops in and bursts open."></video>
       <div>
-        <h4>Pocket Shop</h4>
-        <p>An editorial storefront: products stagger in, cards lift on hover, ADD TO BAG flies a dot into
-           the bag, and VIEW opens a detail panel on a spring.</p>
-        <p class="tags">AnimateEach · OnHover · Show/Hide transitions · OnComplete</p>
-        <p class="read">read: AddToBag(), SelectCategory()</p>
+        <h4>The Gilded Anvil</h4>
+        <p>A medieval item shop: a bought ware arcs into the satchel while the purse counts down, a
+           PURCHASED stamp slams onto the card, and a chest drops in, bursts open and flips out its
+           rewards one by one.</p>
+        <p class="tags">Value-driven curves · OnComplete · Then · Show transitions · OnHover</p>
+        <p class="read">read: FlyToSlot(), RollPurse(), MarkSold(), OpenChest()</p>
       </div>
     </article>
     <article class="demo">
@@ -214,14 +217,15 @@ el.<span class="k">Animate</span>().<span class="k">MoveY</span>(<span class="n"
       </div>
     </article>
     <article class="demo">
-      <video src="media/sample-mission.mp4" poster="media/sample-mission.jpg" autoplay muted loop playsinline
-             aria-label="Mission Control: a new-task drawer slides in and the created task appears in the queue."></video>
+      <video src="media/sample-mission-v2.mp4" poster="media/sample-mission-v2.jpg" autoplay muted loop playsinline
+             aria-label="Mission Control: a SaaS dashboard where a task is ticked off, the open count rolls, and a toast confirms the new task."></video>
       <div>
         <h4>Mission Control Dashboard</h4>
-        <p>A project dashboard: a spring drawer for new tasks, page transitions, named card states,
-           hover feedback and a motion-mode toggle that respects reduced motion.</p>
-        <p class="tags">Variants · SwapTo · Show/Hide · MotionSettings</p>
-        <p class="read">read: OpenDrawer(), NavigateTo(), CycleMotionMode()</p>
+        <p>A SaaS dashboard: KPIs count up, the velocity chart morphs between ranges, a ⌘K command
+           palette staggers its results, ticked tasks roll the open count, and a night theme crossfades
+           every colour.</p>
+        <p class="tags">Value tweens · springs · stagger · Height reflow · MotionSettings</p>
+        <p class="read">read: SetRange(), RollOpenCount(), OpenPalette(), OpenDrawer()</p>
       </div>
     </article>
   </div>
