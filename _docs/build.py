@@ -22,6 +22,15 @@ BASE = "https://twitchedd.github.io/cascade/docs/"
 PRO = "https://assetstore.unity.com/packages/slug/394760"
 LITE = "https://assetstore.unity.com/packages/slug/394764"
 
+# Hand-written section appended to llms.txt after the generated page list.
+LLMS_EXAMPLES = """
+## Examples
+
+- [Cascade Audio Studio (play in browser)](https://twitchedd.itch.io/cascade-audio-studio): A music player built in Unity UI Toolkit and animated with Cascade, where the whole UI follows the song: fire, lasers and rain driven by beat detection and a loudness level, a scratchable record, mixer faders and pause that freezes every effect.
+- [Audio-reactive UI in Unity UI Toolkit (write-up)](https://medium.com/@dldesing/audio-reactive-ui-in-unity-ui-toolkit-fire-lasers-and-rain-that-follow-the-music-f18d74d7385a): How the Audio Studio drives UI Toolkit effects from music with Cascade tweens: one Value tween re-themes the screen, looping tweens for fire, lasers and rain, beat and loudness signals, a turntable motor, and the bugs fixed along the way.
+- [Cascade Blocks (play in browser)](https://twitchedd.itch.io/cascade-blocks): A falling-block game whose UI motion is all Cascade: menu stagger, screen transitions, line-clear sweep and score count-up.
+"""
+
 
 def highlight(code):
     out = []
@@ -226,6 +235,7 @@ def main():
     for q in pages:
         u = BASE + ("" if q["slug"] == "index" else q["file"])
         llms.append(f"- [{q['label']}]({u}): {q['description']}")
+    llms += ["", LLMS_EXAMPLES.strip()]
     (ROOT / "llms.txt").write_text("\n".join(llms) + "\n")
     full = [llms[0], "", llms[2], "",
             "This file is every page of the Cascade docs as plain Markdown, in reading order, so an assistant can",
