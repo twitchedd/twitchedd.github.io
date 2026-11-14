@@ -35,12 +35,21 @@ it says springs are in Pro and offers the closest Lite version, an <code>Ease.Ou
 
 <h2>The AI guide inside the package</h2>
 <p>Both tiers ship <code>Documentation~/AI-GUIDE.md</code>, written for assistants: every verb, the
-easing names, the rules that prevent the common mistakes, and examples from intent to code. Because it
-comes with the package, it always matches the version you have installed. The skill reads it when it
-exists. Without the skill, point your assistant at it:</p>
+easing names, what happens when a new animation interrupts a running one, the rules that prevent the
+common mistakes, and examples from intent to code. Pro keeps the JSON format in <code>AI-GUIDE-JSON.md</code>
+beside it, so an assistant writing C# reads only what it needs. Because the guide comes with the package, it
+always matches the version you have installed. The skill reads it when it exists. Without the skill, point
+your assistant at it:</p>
 <pre><code class="text">Read Packages/com.twitched.cascade.lite/Documentation~/AI-GUIDE.md,
 then fade the shop panel in when it opens.</code></pre>
 <p>(For Pro the folder is <code>Packages/com.twitched.cascade/</code>.)</p>
+
+<h3>One-click setup <span class="tier pro">Pro</span></h3>
+<p><strong>Tools &gt; Cascade &gt; Set Up AI Assistants</strong> writes a short Cascade section into the files
+coding assistants read from your project folder: <code>AGENTS.md</code>, <code>CLAUDE.md</code>,
+<code>.github/copilot-instructions.md</code> and <code>.cursor/rules/cascade.mdc</code>. It points them at the guide
+for your installed version, so you don't have to. Files you already have keep their content; only a marked
+Cascade section is added or replaced. Run it again after upgrading Cascade.</p>
 
 <h3>The rule assistants most often miss</h3>
 <p>Every verb animates <em>to</em> a value, starting from the element's current value. "Fade in" on an
@@ -48,6 +57,10 @@ element that is already visible animates from 1 to 1, and nothing happens. Entra
 they start:</p>
 <pre><code class="cs">panel.Animate().Fade(1f, 0.3f).From(0f).Ease(Ease.OutCubic);   // not just Fade(1f, 0.3f)</code></pre>
 <p>The guide and the skill both teach this, and Pro's linter (below) catches it.</p>
+<p>The second most common: <code>.Delay()</code> and <code>.Loop()</code> change only the step right before
+them. <code>.Loop()</code> after a <code>.Then()</code> chain repeats the last step, not the chain, so a pulse is one
+step that ping-pongs:</p>
+<pre><code class="cs">badge.Animate().ScaleTo(1.1f, 0.5f).From(1f).Ease(Ease.InOutSine).Loop(LoopMode.PingPong);</code></pre>
 
 <h2>JSON animation sequences <span class="tier pro">Pro</span></h2>
 <p>For self-contained effects such as an entrance, a shake or a pulse, an assistant can describe the

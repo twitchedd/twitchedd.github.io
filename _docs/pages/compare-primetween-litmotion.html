@@ -1,0 +1,346 @@
+order: 10
+group: Guides
+label: Cascade vs PrimeTween vs LitMotion
+title: Best animation library for Unity UI Toolkit: Cascade vs PrimeTween vs LitMotion
+description: An honest comparison of three tween libraries for Unity UI Toolkit VisualElements: what each one animates, the same code in all three, springs, sequencing, lifecycle and price, and when to pick which.
+---
+<h1>Cascade vs PrimeTween vs LitMotion for UI Toolkit</h1>
+<p class="lede">If you search for a way to animate Unity UI Toolkit, three libraries come up: PrimeTween,
+LitMotion and Cascade. All three can fade and move a <code>VisualElement</code>. They were built for
+different jobs, and that shows once your UI gets bigger than one button.</p>
+<p><strong>Disclosure:</strong> I make Cascade. I've tried to be fair to the other two. Every claim about
+PrimeTween and LitMotion below comes from their source code and docs (PrimeTween 1.5.2, LitMotion 2.0.2,
+checked November 2026). The Cascade version is 1.2. Every code sample on this page was compiled and run in one Unity
+6000.4 project with all three libraries installed, and checked against what the text says it does. If
+something is wrong or out of date, tell me and I'll fix the page.</p>
+
+<h2>The short answer</h2>
+<ul>
+<li><strong>Your project already uses PrimeTween or LitMotion for gameplay:</strong> use the same library
+for simple UI Toolkit tweens. One tween library is easier than two.</li>
+<li><strong>You need the fastest possible tweens for thousands of objects:</strong> LitMotion (Burst and
+the Job System) or PrimeTween. In my UI Toolkit benchmark below, LitMotion was the fastest, Cascade second and PrimeTween third.</li>
+<li><strong>Your UI is built in UI Toolkit and has a lot of motion</strong> (screens that come and go,
+lists, interruptible buttons, springs): Cascade was written for exactly that.</li>
+<li><strong>You write most of your UI code with an AI assistant:</strong> Cascade is the only one of the
+three with official assistant support. See <a href="#ai-coding-assistants">AI coding assistants</a>.</li>
+<li><strong>You're on Unity 2022 or older:</strong> Cascade needs Unity 6, so pick PrimeTween or LitMotion.</li>
+</ul>
+
+<h2>At a glance</h2>
+<div class="table-wrap"><table>
+<thead><tr><th></th><th>PrimeTween</th><th>LitMotion</th><th>Cascade</th></tr></thead>
+<tbody>
+<tr><td>Built for</td><td>Transforms, materials, uGUI, also UI Toolkit</td><td>Any value, very fast (DOTS)</td><td>UI Toolkit only</td></tr>
+<tr><td>Price</td><td>free (PRO edition $32.99 adds Inspector animations)</td><td>free</td><td>Lite free; Pro paid</td></tr>
+<tr><td>License</td><td>custom (free for commercial use)</td><td>MIT</td><td>Lite MIT; Pro Asset Store EULA</td></tr>
+<tr><td>Unity</td><td>2018.4+ (per its package)</td><td>2021.3+</td><td>6000.0+</td></tr>
+<tr><td>Dependencies</td><td>none</td><td>Burst, Collections, Mathematics</td><td>none</td></tr>
+<tr><td>UI Toolkit tweens built in</td><td>opacity, color, background color, translate/rotate/scale, left/top/width/height</td><td>opacity, colors, translate, scale, rotate, transform-origin, left/right/top/bottom, width/height, font size, text, progress bar</td><td>opacity, translate, scale, rotate, colors, width/height, left/top/right/bottom, border radius/width/color, font size, padding, background-image tint, slide-in from an edge, any float</td></tr>
+<tr><td>Other styles</td><td><code>Tween.Custom</code></td><td><code>Bind</code></td><td><code>Value</code></td></tr>
+<tr><td>Sequencing</td><td>yes (<code>Sequence</code>)</td><td>yes (<code>LSequence</code>, since 2.0)</td><td>yes (<code>Then()</code>, <code>At(seconds)</code>)</td></tr>
+<tr><td>Await</td><td>yes</td><td>yes</td><td>yes</td></tr>
+<tr><td>Physics springs</td><td>no (elastic/overshoot easing)</td><td>no (elastic easing)</td><td>Pro</td></tr>
+<tr><td>Stagger helper</td><td>no (use delays)</td><td>no (use delays)</td><td>Pro</td></tr>
+<tr><td>Shake / punch</td><td>Transform only</td><td>yes (float/Vector values, bind to any style)</td><td>yes: <code>Shake</code>, <code>Punch</code> (Lite); <code>PunchScale</code>, <code>PunchRotate</code>, <code>Pulse</code>, <code>Wiggle</code>, <code>Pop</code> (Pro). Additive, always end at rest</td></tr>
+<tr><td>Stops when the element leaves the panel</td><td>no (measured: keeps writing to it)</td><td>no (measured: keeps writing to it)</td><td>yes</td></tr>
+<tr><td>Reduced motion setting</td><td>no</td><td>no</td><td>yes (Lite and Pro)</td></tr>
+<tr><td>AI coding assistant support</td><td>no official support (community-made agent skills exist)</td><td>no official support (community-made agent skills exist)</td><td>official agent skill, AI guide in the package, compile-time code checks; Pro: validated JSON animations</td></tr>
+<tr><td>Screen transitions, hover/press, no-code component</td><td>no</td><td>no (the Inspector component has no UI Toolkit tracks)</td><td>Pro</td></tr>
+</tbody></table></div>
+
+<h2>The same animation in all three</h2>
+<p>A panel fades in while it slides up 40 px, a common way to show a window.</p>
+
+<h3>PrimeTween</h3>
+<pre><code class="cs">using PrimeTween;
+
+Tween.VisualElementOpacity(panel, startValue: 0f, endValue: 1f, duration: 0.3f, ease: Ease.OutCubic);
+Tween.Position(panel, startValue: new Vector3(0, 40, 0), endValue: Vector3.zero, duration: 0.3f, ease: Ease.OutCubic);</code></pre>
+<p><code>Tween.Position</code>, <code>Rotation</code> and <code>Scale</code> accept a
+<code>VisualElement</code> and write <code>style.translate</code>, <code>rotate</code> and
+<code>scale</code> on Unity 6.2 and newer.</p>
+
+<h3>LitMotion</h3>
+<pre><code class="cs">using LitMotion;
+using LitMotion.Extensions;
+
+LMotion.Create(0f, 1f, 0.3f).WithEase(Ease.OutCubic).BindToStyleOpacity(panel);
+LMotion.Create(new Vector2(0, 40), Vector2.zero, 0.3f).WithEase(Ease.OutCubic).BindToStyleTranslate(panel);</code></pre>
+<p>Every motion takes an explicit start value. LitMotion has the widest set of built-in style bindings
+of the three.</p>
+
+<h3>Cascade</h3>
+<pre><code class="cs">using Cascade;
+
+panel.Animate()
+     .Fade(1f, 0.3f).From(0f).Ease(Ease.OutCubic)
+     .MoveY(0f, 0.3f).From(40f).Ease(Ease.OutCubic);</code></pre>
+<p>Without <code>From()</code>, Cascade starts from the value the element has on the frame the animation
+begins, including values that come from USS.</p>
+
+<h2>A sequence: fade in, then pop</h2>
+
+<h3>PrimeTween</h3>
+<pre><code class="cs">Sequence.Create()
+    .Chain(Tween.VisualElementOpacity(panel, startValue: 0f, endValue: 1f, duration: 0.2f))
+    .Chain(Tween.Scale(panel, endValue: new Vector3(1.1f, 1.1f, 1f), duration: 0.2f, ease: Ease.OutBack))
+    .ChainCallback(() =&gt; Debug.Log("done"));</code></pre>
+
+<h3>LitMotion</h3>
+<pre><code class="cs">LSequence.Create()
+    .Append(LMotion.Create(0f, 1f, 0.2f).BindToStyleOpacity(panel))
+    .Append(LMotion.Create(Vector3.one, new Vector3(1.1f, 1.1f, 1f), 0.2f).WithEase(Ease.OutBack).BindToStyleScale(panel))
+    .Run(b =&gt; b.WithOnComplete(() =&gt; Debug.Log("done")));</code></pre>
+
+<h3>Cascade</h3>
+<pre><code class="cs">panel.Animate()
+     .Fade(1f, 0.2f).From(0f)
+     .Then()
+     .ScaleTo(1.1f, 0.2f).Ease(Ease.OutBack)
+     .OnComplete(() =&gt; Debug.Log("done"));</code></pre>
+<p>All three read well. All three can also place a tween at an exact time inside a sequence: PrimeTween
+and LitMotion with <code>Insert</code>, Cascade with <code>At(seconds)</code>.</p>
+
+<h2>Where the differences show up</h2>
+
+<h3>When the element leaves the screen</h3>
+<p>PrimeTween stops a tween when its target is a destroyed <code>UnityEngine.Object</code>, and LitMotion
+links motions to a GameObject with <code>AddTo</code>. A <code>VisualElement</code> isn't a Unity object,
+so neither check applies. Neither library listens for an element being removed from its panel, so when a
+screen closes or a list row is recycled mid-tween, stop it yourself. I measured it: a 2-second fade, with
+the element removed after 0.3 s, keeps changing the removed element's opacity in both libraries.</p>
+<pre><code class="cs">// PrimeTween
+panel.RegisterCallback&lt;DetachFromPanelEvent&gt;(_ =&gt; Tween.StopAll(onTarget: panel));
+
+// LitMotion: keep the handles and cancel them
+panel.RegisterCallback&lt;DetachFromPanelEvent&gt;(_ =&gt; handle.TryCancel());</code></pre>
+<p>Cascade cancels an animation when its element leaves the panel and never writes to an element that
+isn't displayed. In a UI with many screens, that's the bug class I most wanted to remove.</p>
+
+<h3>Interrupting an animation</h3>
+<p>Buttons and drawers get interrupted all the time: hover out before the hover-in finishes, close a
+drawer while it's opening. With PrimeTween or LitMotion you stop the old tween and start a new one,
+usually from the current value. The new tween starts from rest, so the motion visibly loses its momentum.</p>
+<p>Cascade Pro has physics springs. A spring that gets a new target keeps its current velocity, so the
+motion bends toward the new target instead of restarting:</p>
+<pre><code class="cs">drawer.Animate().MoveX(open ? 0f : -320f, 0f).Spring(SpringPreset.Snappy);</code></pre>
+<p>Neither PrimeTween nor LitMotion has a velocity-based spring. Their elastic and overshoot easings look
+springy on a single run, but they restart on interruption.</p>
+
+<h3>Lists</h3>
+<p>Making ten items enter one after another is a loop with a growing delay in PrimeTween
+(<code>startDelay</code>) or LitMotion (<code>WithDelay</code>). That works well. Cascade Pro has a
+helper for it:</p>
+<pre><code class="cs">items.AnimateEach().Fade(1f, 0.3f).From(0f).MoveY(0f, 0.3f).From(16f).Stagger(0.05f);</code></pre>
+
+<h3>Reduced motion</h3>
+<p>Cascade has a global setting, <code>MotionSettings.Mode</code>: <code>Reduced</code> shortens
+animations and removes bounce, <code>Crossfade</code> replaces movement with fades, and
+<code>None</code> jumps to the end state but still fires <code>OnComplete</code>, so code that waits on an
+animation keeps working. Connect it to a "reduce motion" option in your settings menu. PrimeTween and
+LitMotion have no equivalent; you'd add the checks yourself.</p>
+
+<h3>AI coding assistants</h3>
+<p>A lot of UI code is now written by asking Claude Code, Cursor, Copilot or Codex. How well that goes
+depends on what the assistant knows about the library.</p>
+<p><strong>PrimeTween and LitMotion</strong> have been public since 2023 and 2024, so assistants have seen
+plenty of code that uses them. Neither project ships official assistant material, but community-made agent
+skills for both exist on GitHub. The catch for UI Toolkit is that most of that code animates Transforms,
+so assistants tend to reach for <code>transform</code> APIs, and don't know which VisualElement methods
+exist in the version you have.</p>
+<p><strong>Cascade</strong> is new, so an assistant without help will guess its API. To fix that, it ships
+three things:</p>
+<ul>
+<li><strong>An official agent skill</strong> (<code>npx skills add twitchedd/cascade-skill</code>) for any
+agent that reads SKILL.md files. It checks whether your project has Lite or Pro and writes only code that
+tier can compile.</li>
+<li><strong>An AI guide inside the package</strong> (<code>Documentation~/AI-GUIDE.md</code>, both tiers),
+so the assistant reads instructions that match your installed version.</li>
+<li><strong>Validated JSON animations</strong> (Pro). An assistant can describe an effect as JSON;
+<code>SequencePreset.Validate</code> returns the exact step, field and a suggested fix for a typo, and
+<code>Lint</code> flags animations that would do nothing, such as a fade-in without a start value. The
+assistant can correct itself before you ever press Play.</li>
+</ul>
+<p>Here's what that looks like. An assistant writes this entrance, with a verb name that doesn't exist:</p>
+<pre><code class="json">{ "steps": [ { "actions": [
+  { "verb": "SlideIn", "edge": "Bottom", "distance": 40, "duration": 0.4, "ease": "OutCubic" },
+  { "verb": "FadeIn", "to": 1, "duration": 0.4, "ease": "OutCubic" }
+] } ] }</code></pre>
+<p><code>Validate</code> says where the mistake is and what to use instead:</p>
+<pre><code class="cs">MotionError err = SequencePreset.Validate(json);
+// err.Path       → steps[0].actions[1].verb
+// err.Suggestion → Fade</code></pre>
+<p>After the assistant renames it to <code>Fade</code>, the JSON is valid, but the fade still has no start value, so it would fade to where it already is and nothing would appear to happen. <code>LintSummary</code> catches that:</p>
+<pre style="white-space:pre-wrap"><code class="text">steps[0].actions[1]: 'Fade' animates to 1, which is where the element already rests, and nothing earlier in this sequence moved it — so this action will run and change nothing — add "from" to say where it starts (e.g. "from": 0), or drop the action</code></pre>
+<p>Adding <code>"from": 0</code> clears both checks. All three messages above are the real output of Cascade.</p>
+<p>I tested how much this matters. Claude Opus 5.5, running headless in Claude Code with no web access, wrote six common UI Toolkit animations: a panel entrance, a fade-then-pop sequence, a staggered list, a drawer that can be reversed mid-move, an endless pulse that stops when the element is removed, and an error shake. Every answer was compiled and run in Unity against a check for each task. When an answer failed, the compiler errors or failed checks went back to the model until it passed, and every token of every round was counted. Each setup ran 10 times.</p>
+<p>The first round caught three mistakes in Cascade's own AI guide. It didn't say that <code>Loop()</code> repeats only the step right before it, it called <code>Delay()</code> a wait when it delays the step before it, and one example used a method overload that doesn't exist. Only 5 of 10 Cascade answers were right first time. I fixed the guide in the current Cascade 1.2, and the numbers below are from the fixed guide.</p>
+<p>Each library got the setup you'd give it in practice. PrimeTween and LitMotion ship no assistant setup, so the model got each library's official docs plus a list of its UI Toolkit methods, and separately no docs at all, since it already knows both. Cascade ran in a Unity project with the package installed and its <strong>Set Up AI Assistants</strong> menu already run, which writes a short Cascade section into <code>CLAUDE.md</code> pointing at the guide in the package. Its prompt didn't mention any docs.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Setup</th><th>Right first time</th><th>Output tokens</th><th>Cost per run</th><th>Lines of code</th></tr></thead>
+<tbody>
+<tr><td><strong>Cascade 1.2, set-up project</strong></td><td>10/10</td><td><strong>1,546</strong></td><td>$0.14</td><td><strong>42</strong></td></tr>
+<tr><td>PrimeTween + its docs</td><td>10/10</td><td>4,841</td><td>$0.38</td><td>87</td></tr>
+<tr><td>LitMotion + its docs</td><td>10/10</td><td>3,636</td><td>$0.25</td><td>115</td></tr>
+<tr><td>PrimeTween, no docs</td><td>10/10</td><td>3,466</td><td>$0.14</td><td>90</td></tr>
+<tr><td>LitMotion, no docs</td><td>10/10</td><td>2,866</td><td><strong>$0.12</strong></td><td>104</td></tr>
+<tr><td>No library (plain UI Toolkit)</td><td>10/10</td><td>3,932</td><td>$0.15</td><td>163</td></tr>
+</tbody></table></div>
+<p>The numbers are medians of 10 runs. Cost is what Claude Code reported, at list API prices.</p>
+<p>A bigger task tells the same story: a settings screen with a modal that can be reopened while it's closing, a toggle, a toast that stays up while it's re-triggered, a number that counts up, and press feedback. Each setup ran 5 times:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Setup</th><th>Right first time</th><th>Output tokens</th><th>Cost per run</th><th>Lines of code</th></tr></thead>
+<tbody>
+<tr><td><strong>Cascade 1.2, set-up project</strong></td><td>5/5</td><td><strong>6,659</strong></td><td><strong>$0.29</strong></td><td><strong>153</strong></td></tr>
+<tr><td>PrimeTween + its docs</td><td>5/5</td><td>11,046</td><td>$0.56</td><td>212</td></tr>
+<tr><td>LitMotion + its docs</td><td>5/5</td><td>10,134</td><td>$0.43</td><td>251</td></tr>
+<tr><td>No library (plain UI Toolkit)</td><td>5/5</td><td>9,422</td><td>$0.31</td><td>310</td></tr>
+</tbody></table></div>
+<p>What I take from it:</p>
+<ul>
+<li>Every setup got every task right in the end, so this compares cost, not ability.</li>
+<li>Cascade's answers were the shortest and used the fewest output tokens, because one fluent call covers what takes a loop or a helper in the others.</li>
+<li>In dollars, a set-up Cascade project cost about the same as plain UI Toolkit or PrimeTween without docs. LitMotion without docs was the cheapest on the small tasks, about 13% cheaper than Cascade. Giving PrimeTween or LitMotion their docs made them the most expensive, because reading the docs is most of the cost.</li>
+</ul>
+<p>Here's one Cascade answer, exactly as the model wrote it:</p>
+<pre><code class="cs">public static void EnterPanel(VisualElement panel)
+{
+    panel.Animate()
+        .Fade(1f, 0.3f).From(0f).Ease(Ease.OutCubic)
+        .MoveY(0f, 0.3f).From(40f).Ease(Ease.OutCubic);
+}
+
+public static void FadeThenPop(VisualElement panel, Action onDone)
+{
+    panel.Animate()
+        .Fade(1f, 0.2f).From(0f)
+        .Then()
+        .ScaleTo(1.1f, 0.2f).From(1f).Ease(Ease.OutBack)
+        .OnComplete(onDone);
+}
+
+public static void StaggerIn(IList&lt;VisualElement&gt; items)
+{
+    // From(0) is applied to every item immediately, so not-yet-started items stay invisible.
+    items.AnimateEach().Fade(1f, 0.3f).From(0f).Stagger(0.05f);
+}
+
+public static void SetDrawerOpen(VisualElement drawer, bool open)
+{
+    // MoveX replaces any running MoveX and continues from the current value.
+    drawer.Animate().MoveX(open ? 0f : -320f, 0.3f).Ease(Ease.OutCubic);
+}
+
+public static void PulseForever(VisualElement badge)
+{
+    // Cascade cancels animations automatically when the element leaves the panel.
+    badge.Animate().ScaleTo(1.1f, 0.5f).From(1f).Ease(Ease.InOutSine).Loop(LoopMode.PingPong);
+}
+
+public static void ShakeOnError(VisualElement field)
+{
+    field.Animate().Shake(10f, 0.4f);
+}</code></pre>
+<p>This was the prompt for PrimeTween with docs. The others changed only the library name and namespace. The no-docs runs replaced the docs sentence with “You have no documentation for the library: write it from what you already know about its API.” Cascade's runs had no docs sentence, and the plain UI Toolkit runs were told to use only built-in UI Toolkit APIs.</p>
+<pre style="white-space:pre-wrap"><code class="text">Using PrimeTween 1.5.2 (com.kyrylokuzyk.primetween), complete the six tasks in tasks.md (read it). Use the namespace AiTok.s_PTdocs_01. The file docs.md in this folder is the library's documentation; read it first and rely on it. Do not search the web. Write your answer as a single C# file named Tasks.cs in the current folder, then reply with one line saying you are done.</code></pre>
+<p>And the six tasks it was given (tasks.md):</p>
+<details style="margin:0 0 1em"><summary>The six tasks (tasks.md)</summary>
+<pre style="white-space:pre-wrap"><code class="text"># Six Unity UI Toolkit animation tasks
+
+Write one C# file that compiles in a Unity 6 project with the library installed. Use this exact shape
+(replace NAMESPACE with the namespace you were given; keep the class and method names and signatures):
+
+```csharp
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UIElements;
+// add the library's using directives
+
+namespace NAMESPACE
+{
+    public static class Tasks
+    {
+        public static void EnterPanel(VisualElement panel) { ... }
+        public static void FadeThenPop(VisualElement panel, Action onDone) { ... }
+        public static void StaggerIn(IList&lt;VisualElement&gt; items) { ... }
+        public static void SetDrawerOpen(VisualElement drawer, bool open) { ... }
+        public static void PulseForever(VisualElement badge) { ... }
+        public static void ShakeOnError(VisualElement field) { ... }
+    }
+}
+```
+
+All elements are already in a visible UIDocument panel. Durations are in seconds. Each method starts the
+animation and returns immediately (no blocking, no coroutines that the caller must start).
+
+1. **EnterPanel**: the panel fades in from opacity 0 to 1 and slides up from 40 px below its resting
+   position (translate Y from 40 to 0), both over 0.3 s with an ease-out cubic curve.
+2. **FadeThenPop**: fade the panel from opacity 0 to 1 over 0.2 s; when that finishes, scale it from 1 to
+   1.1 over 0.2 s with an "out back" ease; when the scale finishes, call `onDone` exactly once.
+3. **StaggerIn**: every item fades from opacity 0 to 1 over 0.3 s. Item i starts 0.05 × i seconds after
+   item 0 (item 0 starts immediately). Items that haven't started yet must be invisible (opacity 0).
+4. **SetDrawerOpen**: move the drawer horizontally (translate X) to 0 when `open` is true and to -320 when
+   false, over 0.3 s with an ease-out curve. It may be called again while the previous call is still
+   animating: the drawer must then continue smoothly from wherever it is now (no jump) to the new target,
+   and the old animation must not keep fighting it.
+5. **PulseForever**: scale the badge from 1 to 1.1 and back, continuously (0.5 s each way), forever. When
+   the badge is removed from the hierarchy, the animation must stop (nothing keeps writing to it).
+6. **ShakeOnError**: shake the field horizontally (translate X), up to about 10 px either side, for about
+   0.4 s, ending exactly at translate X = 0 (it starts at 0).</code></pre>
+</details>
+<p>It's one model in one tool, Claude Code with Opus 5.5, so other assistants may land differently. Where medians are within a few cents of each other (Cascade, PrimeTween without docs, plain UI Toolkit), the run-to-run ranges overlap, so treat those as about equal.</p>
+<p>Details are on the <a href="ai-and-skill.html">AI assistants page</a>.</p>
+
+<h3>Raw speed</h3>
+<p>LitMotion runs on Burst, and PrimeTween is built to make zero allocations. I measured all three on
+UI Toolkit: a release (Mono) player on an Apple M-series Mac, N elements each animating opacity and
+translate X back and forth forever, the same curve and timing in every library, 5 seconds measured after a
+2-second warm-up, 3 runs each. The numbers are the extra milliseconds per frame over the same elements with
+no animation:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Elements</th><th>PrimeTween</th><th>LitMotion</th><th>Cascade</th></tr></thead>
+<tbody>
+<tr><td>100</td><td>0.1 ms</td><td>0.1 ms</td><td>0.1 ms</td></tr>
+<tr><td>500</td><td>0.5 ms</td><td>0.3 ms</td><td>0.4 ms</td></tr>
+<tr><td>1,000</td><td>0.8 ms</td><td>0.5 ms</td><td>0.7 ms</td></tr>
+<tr><td>2,000</td><td>1.5 ms</td><td>0.9 ms</td><td>1.3 ms</td></tr>
+</tbody></table></div>
+<p>None of the three allocated any memory per frame. The player's frame timer moves in 0.1 ms steps, so
+treat a difference of 0.1 ms as a tie. LitMotion is the fastest, Cascade is in between, and for typical
+UI, where tens of elements move at once, the difference doesn't matter: all three cost about 0.1 ms.</p>
+
+<h2>Where Cascade is the weaker choice</h2>
+<ul>
+<li><strong>Unity 6 only.</strong> Projects on 2022 LTS or older can't use it.</li>
+<li><strong>UI Toolkit only.</strong> It doesn't animate Transforms, uGUI or materials. If you need those
+too, you'll have a second library anyway.</li>
+<li><strong>Springs, stagger, transitions and the no-code component are paid.</strong> PrimeTween and
+LitMotion are free. Cascade Lite is free and MIT licensed, and covers the tweens, sequences, await and reduced motion.</li>
+<li><strong>Younger and smaller.</strong> PrimeTween and LitMotion have years of use and large
+communities. Cascade launched in 2026.</li>
+<li><strong>Assistants don't know it by default.</strong> With no setup, an assistant guesses Cascade's API,
+while it already knows PrimeTween and LitMotion. One menu in the package fixes that, but it's a step the other two
+don't need.</li>
+</ul>
+
+<h2>Which one should you pick?</h2>
+<ul>
+<li><strong>A few UI Toolkit tweens in a game that already uses PrimeTween or LitMotion:</strong> keep it.</li>
+<li><strong>Performance-critical tweening of many objects:</strong> LitMotion.</li>
+<li><strong>A simple, free, well-documented tween API for everything:</strong> PrimeTween.</li>
+<li><strong>A UI Toolkit interface with a lot of motion:</strong> start with
+<a href="https://assetstore.unity.com/packages/slug/394764">Cascade Lite (free)</a>, and move to
+<a href="https://assetstore.unity.com/packages/slug/394760">Cascade Pro</a> if you need springs,
+stagger or screen transitions.</li>
+</ul>
+
+<h2>Sources</h2>
+<ul>
+<li>PrimeTween: <a href="https://github.com/KyryloKuzyk/PrimeTween">GitHub</a> (README, changelog,
+benchmarks) and the 1.5.2 package source.</li>
+<li>LitMotion: <a href="https://github.com/annulusgames/LitMotion">GitHub</a> (2.0.2 source,
+<code>LitMotionUIToolkitExtensions.cs</code>) and <a href="https://annulusgames.github.io/LitMotion/">its docs</a>.</li>
+<li>Cascade: <a href="index.html">these docs</a> and the <a href="api.html">API reference</a>.</li>
+</ul>

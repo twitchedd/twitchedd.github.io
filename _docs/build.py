@@ -22,6 +22,15 @@ BASE = "https://twitchedd.github.io/cascade/docs/"
 PRO = "https://assetstore.unity.com/packages/slug/394760"
 LITE = "https://assetstore.unity.com/packages/slug/394764"
 
+# Hand-written section appended to llms.txt after the generated page list.
+LLMS_EXAMPLES = """
+## Examples
+
+- [Cascade Audio Studio (play in browser)](https://twitchedd.itch.io/cascade-audio-studio): A music player built in Unity UI Toolkit and animated with Cascade, where the whole UI follows the song: fire, lasers and rain driven by beat detection and a loudness level, a scratchable record, mixer faders and pause that freezes every effect.
+- [Audio-reactive UI in Unity UI Toolkit (write-up)](https://medium.com/@dldesing/audio-reactive-ui-in-unity-ui-toolkit-fire-lasers-and-rain-that-follow-the-music-f18d74d7385a): How the Audio Studio drives UI Toolkit effects from music with Cascade tweens: one Value tween re-themes the screen, looping tweens for fire, lasers and rain, beat and loudness signals, a turntable motor, and the bugs fixed along the way.
+- [Cascade Blocks (play in browser)](https://twitchedd.itch.io/cascade-blocks): A falling-block game whose UI motion is all Cascade: menu stagger, screen transitions, line-clear sweep and score count-up.
+"""
+
 
 def highlight(code):
     out = []
@@ -52,6 +61,50 @@ def parse(path):
     body = re.sub(r"<(h2|h3)>(.*?)</\1>", anchor, body)
     slug = path.stem
     return {**meta, "slug": slug, "file": "index.html" if slug == "index" else slug + ".html", "body": body}
+
+
+def to_markdown(body):
+    """A page body (built HTML) as plain Markdown for llms-full.txt."""
+    def inline(t):
+        t = re.sub(r'<a href="([^"]+)"[^>]*>(.*?)</a>',
+                   lambda m: f"[{m.group(2)}]({m.group(1) if m.group(1).startswith(('http', '#')) else BASE + m.group(1)})",
+                   t, flags=re.S)
+        t = re.sub(r"</?strong>", "**", t)
+        t = re.sub(r"</?code[^>]*>", "`", t)
+        t = re.sub(r"<[^>]+>", "", t)
+        return re.sub(r"\s*\n\s*", " ", html.unescape(t)).strip()
+    # API members: signature + a one-line doc, with the tier tag kept as text.
+    body = re.sub(r'<div class="member" id="[^"]+"><pre class="sig"><code>(.*?)</code></pre><div class="mdoc">(.*?)</div></div>',
+                  lambda m: f'<pre><code class="cs">{m.group(1)}</code></pre><p>'
+                            + re.sub(r'<span class="tier[^"]*">(.*?)</span>', r'(\1)', m.group(2)) + '</p>',
+                  body, flags=re.S)
+    out = []
+    pattern = (r'<pre[^>]*><code(?: class="(\w+)")?>(.*?)</code></pre>|<(h[1-4])[^>]*>(.*?)</\3>|<p[^>]*>(.*?)</p>'
+               r'|<ul>(.*?)</ul>|<ol>(.*?)</ol>|<table>(.*?)</table>')
+    for m in re.finditer(pattern, body, re.S):
+        if m.group(2) is not None:
+            lang = {"cs": "csharp"}.get(m.group(1) or "", m.group(1) or "")
+            code = html.unescape(re.sub(r"<[^>]+>", "", m.group(2))).strip("\n")
+            out.append(f"```{lang}\n{code}\n```")
+        elif m.group(3):
+            level = int(m.group(3)[1])
+            if level > 1:
+                out.append("#" * level + " " + inline(m.group(4)))
+        elif m.group(5) is not None:
+            out.append(inline(m.group(5)))
+        elif m.group(6) is not None or m.group(7) is not None:
+            items = re.findall(r"<li>(.*?)</li>", m.group(6) or m.group(7), re.S)
+            out.append("\n".join(("- " if m.group(6) is not None else f"{i + 1}. ") + inline(x) for i, x in enumerate(items)))
+        else:
+            rows = re.findall(r"<tr>(.*?)</tr>", m.group(8), re.S)
+            lines = []
+            for i, r in enumerate(rows):
+                cells = [inline(c).replace("|", "\\|") for c in re.findall(r"<t[hd][^>]*>(.*?)</t[hd]>", r, re.S)]
+                lines.append("| " + " | ".join(cells) + " |")
+                if i == 0:
+                    lines.append("|" + "---|" * len(cells))
+            out.append("\n".join(lines))
+    return "\n\n".join(out)
 
 
 TEMPLATE = """<!doctype html>
@@ -177,16 +230,25 @@ def main():
             "UI Animator and validated JSON animation sequences. Unity 6000.0+, pure C#, no dependencies. "
             f"Cascade Lite is free and MIT licensed ({LITE}); Cascade Pro adds springs, stagger, transitions, "
             f"interactions, variants, the UI Animator, JSON sequences and effects ({PRO}). "
-            "Agent skill: npx skills add twitchedd/cascade-skill", "", "## Docs", ""]
+            "Agent skill: npx skills add twitchedd/cascade-skill", "",
+            "Every page below in one plain-text file: https://twitchedd.github.io/llms-full.txt", "", "## Docs", ""]
     for q in pages:
         u = BASE + ("" if q["slug"] == "index" else q["file"])
         llms.append(f"- [{q['label']}]({u}): {q['description']}")
+    llms += ["", LLMS_EXAMPLES.strip()]
     (ROOT / "llms.txt").write_text("\n".join(llms) + "\n")
+    full = [llms[0], "", llms[2], "",
+            "This file is every page of the Cascade docs as plain Markdown, in reading order, so an assistant can",
+            "load the whole reference in one request. Each page starts with its URL.", ""]
+    for q in pages:
+        u = BASE + ("" if q["slug"] == "index" else q["file"])
+        full += ["", "---", "", f"# {q['title']}", f"Source: {u}", "", to_markdown(q["body"])]
+    (ROOT / "llms-full.txt").write_text("\n".join(full).rstrip() + "\n")
     schema = Path("/Users/or/Projects/UnityUI/com.twitched.cascade/Documentation~/cascade-sequence.schema.json")
     if schema.exists():
         (OUT / schema.name).write_text(schema.read_text())
     (ROOT / "robots.txt").write_text("User-agent: *\nAllow: /\nSitemap: https://twitchedd.github.io/sitemap.xml\n")
-    print("wrote sitemap.xml, robots.txt, llms.txt, schema")
+    print(f"wrote sitemap.xml, robots.txt, llms.txt, llms-full.txt ({len(chr(10).join(full)) // 1024} KB), schema")
 
 
 if __name__ == "__main__":
