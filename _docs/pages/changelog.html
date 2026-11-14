@@ -1,0 +1,91 @@
+order: 15
+group: Reference
+label: Changelog
+title: Cascade changelog: what's new in each release of the Unity UI Toolkit animation library
+description: Every Cascade release for Unity UI Toolkit, newest first: new verbs, fixes, sample redesigns and AI assistant improvements, with what's in Lite and what's Pro-only.
+---
+<h1>Changelog</h1>
+<p class="lede">What changed in each release, newest first. Lite and Pro share one version number and ship
+together. Items marked <span class="tier pro">Pro</span> are only in Pro; everything else is in both.</p>
+<p>To update, open Package Manager, select Cascade under My Assets and click Update. The full changelog
+also ships inside the package as <code>CHANGELOG.md</code>.</p>
+
+<h2>1.2.1 (2026-11-14)</h2>
+<h3>Changed</h3>
+<ul>
+<li><strong>Clearer guidance for AI coding assistants.</strong> The AI guide and the rules written by
+<strong>Tools &gt; Cascade &gt; Set Up AI Assistants</strong> <span class="tier pro">Pro</span> now explain three
+things that misled assistants: <code>Loop()</code> repeats only the verb right before it, never a
+<code>Then()</code> chain; <code>Delay()</code> delays the verb before it, so a <code>Delay</code> before any verb
+does nothing; and the stagger example used an <code>AnimateEach</code> overload that doesn't exist.</li>
+<li><strong>A shorter, code-first AI guide.</strong> <code>AI-GUIDE.md</code> is a little over half its old size
+and has a new "Behaviour and exact names" section: which animations replace a running one, when
+<code>From()</code> applies, <code>OnComplete</code> vs <code>OnSettled</code>, counting a number with
+<code>Value()</code>, and the exact ease and verb names. The JSON sequence format moved to its own file,
+<code>AI-GUIDE-JSON.md</code>. Assistants get Cascade code right first time more often and spend fewer tokens
+doing it.</li>
+<li>The <code>Loop()</code> documentation comment (what your IDE shows) now says it loops only the most recent
+verb.</li>
+</ul>
+<p>After upgrading, run <strong>Set Up AI Assistants</strong> again to refresh the rules in your project.</p>
+
+<h2>1.2.0 (2026-11-11)</h2>
+<h3>Added</h3>
+<ul>
+<li><strong>Juice verbs.</strong> <code>Shake(strength, duration)</code> and <code>Punch(offset, duration)</code>
+in both tiers; in Pro also a tunable <code>Shake</code> (vibrato, decay, axis), <code>PunchScale</code>,
+<code>PunchRotate</code>, <code>Pulse</code>, <code>Wiggle</code> and <code>Pop</code>. They start and end at
+rest, layer on top of a running move or scale instead of cancelling it, and put the element back if cancelled.
+Under reduced motion they skip straight to rest.</li>
+<li><strong><code>At(seconds)</code></strong>: place the verbs that follow at a time from the start of the
+sequence while the <code>Then()</code> chain carries on, all under one handle.</li>
+<li><strong>Style verbs:</strong> <code>BorderRadius</code>, <code>BorderWidth</code>, <code>BorderColor</code>,
+<code>FontSize</code>, <code>Padding</code>, <code>Tint</code>, <code>Right</code> and <code>Bottom</code>, with
+matching <code>MotionChannel</code> values for <code>StopAnimations(channel)</code>.</li>
+<li><strong><code>WithVelocity(unitsPerSecond)</code></strong> <span class="tier pro">Pro</span>: start a spring
+already moving, so a thrown card keeps the speed of the drag as it springs home.</li>
+<li><strong>Code checks:</strong> an analyzer in the Unity console and your IDE that warns about animation code
+that compiles but doesn't do what was meant (CASC001 to CASC008), such as a duration in milliseconds or an
+entrance with no start value.</li>
+<li><strong>Tools &gt; Cascade &gt; Set Up AI Assistants</strong> <span class="tier pro">Pro</span>: writes
+Cascade's rules into AGENTS.md, CLAUDE.md, Copilot and Cursor files, keeping their existing content.</li>
+<li>A "juice &amp; timing" section in the gallery sample, and keyboard navigation for the gallery's section
+rail.</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li><span class="tier pro">Pro</span> Three showcase samples redesigned: the Starfall Combat HUD, the Pocket Shop
+(now The Gilded Anvil, a medieval shop) and Mission Control (now a SaaS dashboard with a command palette).</li>
+</ul>
+<h3>Fixed</h3>
+<ul>
+<li>The JSON schema and the inspector treated <code>Nudge</code> as a from/to verb; it takes an x/y offset.</li>
+<li>A Lite gallery example faded in without <code>.From(0f)</code>, so copied on its own it did nothing.</li>
+</ul>
+
+<h2>1.1.0 (2026-10-14)</h2>
+<h3>Added</h3>
+<ul>
+<li><span class="tier pro">Pro</span> Four showcase samples: Mission Control Dashboard, Starfall Combat HUD,
+Pocket Shop and Afterhours Audio Studio, each a complete animated UI Toolkit screen.</li>
+<li>Links to these online docs from Package Manager, the README and the getting-started guide.</li>
+</ul>
+<h3>Fixed</h3>
+<ul>
+<li>The documentation files and sample READMEs could be missing from the Asset Store download.</li>
+<li>Lite: assembly references to <code>Cascade.Lite.Runtime</code> broke on every update.</li>
+<li>Lite: the AI guide's fade-in examples omitted <code>.From(0f)</code>, so they did nothing on a visible
+element.</li>
+</ul>
+
+<h2>1.0.1 (2026-10-02)</h2>
+<h3>Fixed</h3>
+<ul>
+<li>A compile error (<code>CS0619</code>) in the UI Animator inspector on newer Unity 6 editors.</li>
+</ul>
+
+<h2>1.0.0 (2026-08-25)</h2>
+<p>First public release: the tween engine with fades, moves, scales, rotation, colors and sizes, the full easing
+set, sequencing, loops, <code>await</code>, <code>Value()</code> for plain numbers, <code>OnSettled</code> and
+reduced motion. Pro adds springs, stagger, enter/exit and screen transitions, hover/press/focus animations,
+named states, the no-code UI Animator, JSON sequences and shadow/glow.</p>
