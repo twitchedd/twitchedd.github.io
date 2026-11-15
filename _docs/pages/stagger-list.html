@@ -2,12 +2,49 @@ order: 4
 group: Guides
 label: Stagger a list
 title: Stagger animation in Unity UI Toolkit: animate list items one after another
-description: Animate a UI Toolkit list or menu so items enter one after another. Cascade's AnimateEach and Stagger, how to choose the step, and how to schedule what comes after a staggered group.
+description: How to stagger a list in Unity UI Toolkit so items animate in one after another: with USS transitions and a per-item transition-delay (code included), or with Cascade Pro's AnimateEach and Stagger, how to choose the step, and what comes after the group.
 ---
-<h1>Stagger a list <span class="tier pro">Pro</span></h1>
+<h1>Stagger a list in UI Toolkit</h1>
 <p class="lede">A stagger plays the same animation on each item of a list, each one starting a little
-later than the one before. It makes a menu or a list of results read as one movement instead of a block
-appearing at once.</p>
+later than the one before, so a menu or a list of results reads as one movement instead of a block
+appearing at once. In UI Toolkit you can build one from USS transitions with a delay per item, or use
+Cascade Pro, which does it in one chained call.</p>
+
+<h2>Without a library: USS transitions with a delay per item</h2>
+<p>Put the hidden and shown states in USS, give each item a longer <code>transition-delay</code> from C#,
+then add the "shown" class:</p>
+<pre><code class="css">.row {
+    opacity: 0;
+    translate: 40px 0;
+    transition-property: opacity, translate;
+    transition-duration: 0.35s;
+    transition-timing-function: ease-out-cubic;
+}
+.row.shown {
+    opacity: 1;
+    translate: 0 0;
+}</code></pre>
+<pre><code class="cs">using System.Collections.Generic;
+using System.Linq;
+using UnityEngine.UIElements;
+
+var items = listRoot.Query&lt;VisualElement&gt;(className: "row").ToList();
+for (int i = 0; i &lt; items.Count; i++)
+    items[i].style.transitionDelay = new List&lt;TimeValue&gt; { new TimeValue(i * 0.06f, TimeUnit.Second) };
+
+// Add the class on the next frame. Added in the same frame the element appears, UI Toolkit skips the transition.
+listRoot.schedule.Execute(() =&gt; items.ForEach(e =&gt; e.AddToClassList("shown")));</code></pre>
+<p>This works with no extra code in your project. Its limits:</p>
+<ul>
+<li>The timing lives in two files, and the delays stay on the items, so hiding the list again staggers too
+unless you reset them.</li>
+<li>Items must start hidden in USS. Items that are already visible don't animate.</li>
+<li>There is no single "the whole list has finished" moment: each item sends its own
+<code>TransitionEndEvent</code>.</li>
+<li>A transition can't spring, and changing the list halfway leaves items mid-transition.</li>
+</ul>
+
+<h2>With Cascade: one call <span class="tier pro">Pro</span></h2>
 
 <pre><code class="cs">using Cascade;
 using System.Linq;

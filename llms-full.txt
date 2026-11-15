@@ -297,13 +297,51 @@ Animate `translate`, `scale`, `rotate` and `opacity` where you can. They don't t
 # Spring animation in Unity UI Toolkit (physics springs for VisualElements)
 Source: https://twitchedd.github.io/cascade/docs/spring-animation.html
 
-A spring moves an element toward its target like a physical object: it speeds up, can overshoot, and settles. Its length comes from its stiffness rather than a fixed duration.
+Unity UI Toolkit has no spring animation built in. USS transitions and the experimental animation API only offer fixed-duration easing curves. You can write a small spring yourself on the panel scheduler, or use a library: Cascade Pro adds a spring to any animation in one call.
 
-The real reason to use one is interruption. When a new target arrives halfway, a spring keeps its current speed and turns toward the new target. An eased tween has to start again from zero speed, which shows as a hitch. Anything the player can click rapidly, drag or toggle looks better on a spring.
+A spring moves an element toward its target like a physical object: it speeds up, can overshoot, and settles. Its length comes from its stiffness rather than a fixed duration. The real reason to use one is interruption. When a new target arrives halfway, a spring keeps its current speed and turns toward the new target. An eased tween has to start again from zero speed, which shows as a hitch. Anything the player can click rapidly, drag or toggle looks better on a spring.
 
-UI Toolkit has no spring animation built in: USS transitions and the experimental animation API only offer fixed-duration easing curves. Cascade Pro adds springs to every verb.
+## Without a library: a spring on the scheduler
 
-## Add a spring to any verb
+Every `VisualElement` has a scheduler that can run code each frame. A damped spring is a few lines of math on top of it:
+
+```csharp
+using UnityEngine;
+using UnityEngine.UIElements;
+
+public static class SimpleSpring
+{
+    // Springs el's horizontal position to targetX. Each call starts again from zero speed.
+    public static IVisualElementScheduledItem SpringToX(VisualElement el, float targetX,
+                                                        float stiffness = 300f, float damping = 22f)
+    {
+        float x = el.resolvedStyle.translate.x, velocity = 0f;
+        IVisualElementScheduledItem tick = null;
+        tick = el.schedule.Execute(() =>
+        {
+            float dt = Mathf.Min(Time.unscaledDeltaTime, 1f / 30f);   // keep a frame hitch from exploding it
+            velocity += (stiffness * (targetX - x) - damping * velocity) * dt;
+            x += velocity * dt;
+            el.style.translate = new Translate(x, 0);
+            if (Mathf.Abs(targetX - x) < 0.01f && Mathf.Abs(velocity) < 0.01f)
+            {
+                el.style.translate = new Translate(targetX, 0);
+                tick.Pause();                                          // settled
+            }
+        }).Every(0);
+        return tick;
+    }
+}
+```
+
+This is fine for one property and one target. It gets harder from there:
+
+- It starts from zero speed on every call, so a quick second click shows the hitch a spring is meant to remove. Keeping the speed means storing it per element and pausing the previous run.
+- Scale, rotation, colour and size each need their own version.
+- Nothing stops it when the element leaves the panel, and two runs on the same element fight each other.
+- Stiffness and damping are hard to tune by eye.
+
+## With Cascade: a spring on any verb Pro
 
 ```csharp
 using Cascade;
@@ -377,7 +415,47 @@ A spring step ends when the spring has settled, then the next step starts.
 # Stagger animation in Unity UI Toolkit: animate list items one after another
 Source: https://twitchedd.github.io/cascade/docs/stagger-list.html
 
-A stagger plays the same animation on each item of a list, each one starting a little later than the one before. It makes a menu or a list of results read as one movement instead of a block appearing at once.
+A stagger plays the same animation on each item of a list, each one starting a little later than the one before, so a menu or a list of results reads as one movement instead of a block appearing at once. In UI Toolkit you can build one from USS transitions with a delay per item, or use Cascade Pro, which does it in one chained call.
+
+## Without a library: USS transitions with a delay per item
+
+Put the hidden and shown states in USS, give each item a longer `transition-delay` from C#, then add the "shown" class:
+
+```css
+.row {
+    opacity: 0;
+    translate: 40px 0;
+    transition-property: opacity, translate;
+    transition-duration: 0.35s;
+    transition-timing-function: ease-out-cubic;
+}
+.row.shown {
+    opacity: 1;
+    translate: 0 0;
+}
+```
+
+```csharp
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine.UIElements;
+
+var items = listRoot.Query<VisualElement>(className: "row").ToList();
+for (int i = 0; i < items.Count; i++)
+    items[i].style.transitionDelay = new List<TimeValue> { new TimeValue(i * 0.06f, TimeUnit.Second) };
+
+// Add the class on the next frame. Added in the same frame the element appears, UI Toolkit skips the transition.
+listRoot.schedule.Execute(() => items.ForEach(e => e.AddToClassList("shown")));
+```
+
+This works with no extra code in your project. Its limits:
+
+- The timing lives in two files, and the delays stay on the items, so hiding the list again staggers too unless you reset them.
+- Items must start hidden in USS. Items that are already visible don't animate.
+- There is no single "the whole list has finished" moment: each item sends its own `TransitionEndEvent`.
+- A transition can't spring, and changing the list halfway leaves items mid-transition.
+
+## With Cascade: one call Pro
 
 ```csharp
 using Cascade;
@@ -845,7 +923,7 @@ If you search for a way to animate Unity UI Toolkit, three libraries come up: Pr
 
 ## The short answer
 
-- **Your project already uses PrimeTween or LitMotion for gameplay:** use the same library for simple UI Toolkit tweens. One tween library is easier than two.
+- **Your project already uses PrimeTween, LitMotion or DOTween for gameplay:** use the same library for simple UI Toolkit tweens (DOTween's UI Toolkit shortcuts are newer and smaller, see [What about DOTween?](#what-about-dotween)). One tween library is easier than two.
 - **You need the fastest possible tweens for thousands of objects:** LitMotion (Burst and the Job System) or PrimeTween. In my UI Toolkit benchmark below, LitMotion was the fastest, Cascade second and PrimeTween third.
 - **Your UI is built in UI Toolkit and has a lot of motion** (screens that come and go, lists, interruptible buttons, springs): Cascade was written for exactly that.
 - **You write most of your UI code with an AI assistant:** Cascade is the only one of the three with official assistant support. See [AI coding assistants](#ai-coding-assistants).
@@ -1166,6 +1244,16 @@ LitMotion runs on Burst, and PrimeTween is built to make zero allocations. I mea
 
 None of the three allocated any memory per frame. The player's frame timer moves in 0.1 ms steps, so treat a difference of 0.1 ms as a tie. LitMotion is the fastest, Cascade is in between, and for typical UI, where tens of elements move at once, the difference doesn't matter: all three cost about 0.1 ms.
 
+## What about DOTween?
+
+DOTween is the most widely used Unity tween library, and since February 2026 (versions 1.2.815 and 1.2.825) it has UI Toolkit shortcuts too. Its documentation lists these for a `VisualElement`: `DOMove`, `DOMoveX/Y/Z`, `DORotate`, `DOScale`, `DOPunch` and `DOShake`. Its changelog says the move, scale and rotate shortcuts are for Unity 6.3.
+
+- **Covered:** moving, scaling, rotating, punching and shaking an element, with DOTween's usual sequences, callbacks and easing.
+- **Not in the list:** fades, colours, sizes and other styles. For those you'd write a generic `DOTween.To` tween that reads and writes the style yourself, as with PrimeTween's `Tween.Custom`.
+- **Not mentioned in its docs:** springs, a stagger helper, screen transitions, or stopping when an element leaves the panel.
+
+So if your game already uses DOTween, its shortcuts now cover the basic transform moves on UI Toolkit in Unity 6.3 and later. For anything beyond that, or on Unity 6.0 to 6.2, you'd write custom tweens. I haven't tested DOTween in the same project as the other three, so it isn't in the tables above. This section comes from its documentation and changelog, checked November 2026.
+
 ## Where Cascade is the weaker choice
 
 - **Unity 6 only.** Projects on 2022 LTS or older can't use it.
@@ -1185,6 +1273,7 @@ None of the three allocated any memory per frame. The player's frame timer moves
 
 - PrimeTween: [GitHub](https://github.com/KyryloKuzyk/PrimeTween) (README, changelog, benchmarks) and the 1.5.2 package source.
 - LitMotion: [GitHub](https://github.com/annulusgames/LitMotion) (2.0.2 source, `LitMotionUIToolkitExtensions.cs`) and [its docs](https://annulusgames.github.io/LitMotion/).
+- DOTween: [documentation](https://dotween.demigiant.com/documentation.php) (Unity UI Toolkit shortcuts) and [changelog](https://dotween.demigiant.com/download.php) (v1.2.815, v1.2.825).
 - Cascade: [these docs](https://twitchedd.github.io/cascade/docs/index.html) and the [API reference](https://twitchedd.github.io/cascade/docs/api.html).
 
 ---

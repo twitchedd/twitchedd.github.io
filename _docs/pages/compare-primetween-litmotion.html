@@ -2,7 +2,7 @@ order: 10
 group: Guides
 label: Cascade vs PrimeTween vs LitMotion
 title: Best animation library for Unity UI Toolkit: Cascade vs PrimeTween vs LitMotion
-description: An honest comparison of three tween libraries for Unity UI Toolkit VisualElements: what each one animates, the same code in all three, springs, sequencing, lifecycle and price, and when to pick which.
+description: An honest comparison of three tween libraries for Unity UI Toolkit VisualElements: what each one animates, the same code in all three, springs, sequencing, lifecycle and price, when to pick which, and what DOTween's new UI Toolkit shortcuts cover.
 ---
 <h1>Cascade vs PrimeTween vs LitMotion for UI Toolkit</h1>
 <p class="lede">If you search for a way to animate Unity UI Toolkit, three libraries come up: PrimeTween,
@@ -16,8 +16,8 @@ something is wrong or out of date, tell me and I'll fix the page.</p>
 
 <h2>The short answer</h2>
 <ul>
-<li><strong>Your project already uses PrimeTween or LitMotion for gameplay:</strong> use the same library
-for simple UI Toolkit tweens. One tween library is easier than two.</li>
+<li><strong>Your project already uses PrimeTween, LitMotion or DOTween for gameplay:</strong> use the same library
+for simple UI Toolkit tweens (DOTween's UI Toolkit shortcuts are newer and smaller, see <a href="#what-about-dotween">What about DOTween?</a>). One tween library is easier than two.</li>
 <li><strong>You need the fastest possible tweens for thousands of objects:</strong> LitMotion (Burst and
 the Job System) or PrimeTween. In my UI Toolkit benchmark below, LitMotion was the fastest, Cascade second and PrimeTween third.</li>
 <li><strong>Your UI is built in UI Toolkit and has a lot of motion</strong> (screens that come and go,
@@ -311,6 +311,26 @@ no animation:</p>
 treat a difference of 0.1 ms as a tie. LitMotion is the fastest, Cascade is in between, and for typical
 UI, where tens of elements move at once, the difference doesn't matter: all three cost about 0.1 ms.</p>
 
+<h2>What about DOTween?</h2>
+<p>DOTween is the most widely used Unity tween library, and since February 2026 (versions 1.2.815 and
+1.2.825) it has UI Toolkit shortcuts too. Its documentation lists these for a <code>VisualElement</code>:
+<code>DOMove</code>, <code>DOMoveX/Y/Z</code>, <code>DORotate</code>, <code>DOScale</code>,
+<code>DOPunch</code> and <code>DOShake</code>. Its changelog says the move, scale and rotate shortcuts are
+for Unity 6.3.</p>
+<ul>
+<li><strong>Covered:</strong> moving, scaling, rotating, punching and shaking an element, with DOTween's
+usual sequences, callbacks and easing.</li>
+<li><strong>Not in the list:</strong> fades, colours, sizes and other styles. For those you'd write a
+generic <code>DOTween.To</code> tween that reads and writes the style yourself, as with PrimeTween's
+<code>Tween.Custom</code>.</li>
+<li><strong>Not mentioned in its docs:</strong> springs, a stagger helper, screen transitions, or stopping
+when an element leaves the panel.</li>
+</ul>
+<p>So if your game already uses DOTween, its shortcuts now cover the basic transform moves on UI Toolkit
+in Unity 6.3 and later. For anything beyond that, or on Unity 6.0 to 6.2, you'd write custom tweens. I
+haven't tested DOTween in the same project as the other three, so it isn't in the tables above. This
+section comes from its documentation and changelog, checked November 2026.</p>
+
 <h2>Where Cascade is the weaker choice</h2>
 <ul>
 <li><strong>Unity 6 only.</strong> Projects on 2022 LTS or older can't use it.</li>
@@ -342,5 +362,7 @@ stagger or screen transitions.</li>
 benchmarks) and the 1.5.2 package source.</li>
 <li>LitMotion: <a href="https://github.com/annulusgames/LitMotion">GitHub</a> (2.0.2 source,
 <code>LitMotionUIToolkitExtensions.cs</code>) and <a href="https://annulusgames.github.io/LitMotion/">its docs</a>.</li>
+<li>DOTween: <a href="https://dotween.demigiant.com/documentation.php">documentation</a> (Unity UI Toolkit shortcuts) and
+<a href="https://dotween.demigiant.com/download.php">changelog</a> (v1.2.815, v1.2.825).</li>
 <li>Cascade: <a href="index.html">these docs</a> and the <a href="api.html">API reference</a>.</li>
 </ul>
