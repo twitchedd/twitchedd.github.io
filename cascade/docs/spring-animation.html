@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Spring animation in Unity UI Toolkit (physics springs for VisualElements)</title>
-<meta name="description" content="Add physics spring animation to Unity UI Toolkit VisualElements with Cascade: presets, custom springs by feel (response and bounce), springs on hover, and interruptions that keep their momentum.">
+<meta name="description" content="How to do spring animation in Unity UI Toolkit: UI Toolkit has none built in, so write a damped spring on the panel scheduler (code included) or use Cascade Pro for presets, springs by feel, springs on hover and interruptions that keep their momentum.">
 <link rel="canonical" href="https://twitchedd.github.io/cascade/docs/spring-animation.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Spring animation in Unity UI Toolkit (physics springs for VisualElements)">
-<meta property="og:description" content="Add physics spring animation to Unity UI Toolkit VisualElements with Cascade: presets, custom springs by feel (response and bounce), springs on hover, and interruptions that keep their momentum.">
+<meta property="og:description" content="How to do spring animation in Unity UI Toolkit: UI Toolkit has none built in, so write a damped spring on the panel scheduler (code included) or use Cascade Pro for presets, springs by feel, springs on hover and interruptions that keep their momentum.">
 <meta property="og:url" content="https://twitchedd.github.io/cascade/docs/spring-animation.html">
 <meta property="og:image" content="https://twitchedd.github.io/img/cover-v2.jpg">
 <link rel="icon" href="../../img/avatar.png">
@@ -22,7 +22,7 @@
  "@context": "https://schema.org",
  "@type": "TechArticle",
  "headline": "Spring animation in Unity UI Toolkit (physics springs for VisualElements)",
- "description": "Add physics spring animation to Unity UI Toolkit VisualElements with Cascade: presets, custom springs by feel (response and bounce), springs on hover, and interruptions that keep their momentum.",
+ "description": "How to do spring animation in Unity UI Toolkit: UI Toolkit has none built in, so write a damped spring on the panel scheduler (code included) or use Cascade Pro for presets, springs by feel, springs on hover and interruptions that keep their momentum.",
  "url": "https://twitchedd.github.io/cascade/docs/spring-animation.html",
  "author": {
   "@type": "Organization",
@@ -95,16 +95,55 @@
 </nav>
 <main class="doc">
 <article>
-<h1>Spring animation in UI Toolkit <span class="tier pro">Pro</span></h1>
-<p class="lede">A spring moves an element toward its target like a physical object: it speeds up, can
-overshoot, and settles. Its length comes from its stiffness rather than a fixed duration.</p>
-<p>The real reason to use one is interruption. When a new target arrives halfway, a spring keeps its
-current speed and turns toward the new target. An eased tween has to start again from zero speed, which
-shows as a hitch. Anything the player can click rapidly, drag or toggle looks better on a spring.</p>
-<p>UI Toolkit has no spring animation built in: USS transitions and the experimental animation API only
-offer fixed-duration easing curves. Cascade Pro adds springs to every verb.</p>
+<h1>Spring animation in UI Toolkit</h1>
+<p class="lede">Unity UI Toolkit has no spring animation built in. USS transitions and the experimental
+animation API only offer fixed-duration easing curves. You can write a small spring yourself on the panel
+scheduler, or use a library: Cascade Pro adds a spring to any animation in one call.</p>
+<p>A spring moves an element toward its target like a physical object: it speeds up, can overshoot, and
+settles. Its length comes from its stiffness rather than a fixed duration. The real reason to use one is
+interruption. When a new target arrives halfway, a spring keeps its current speed and turns toward the new
+target. An eased tween has to start again from zero speed, which shows as a hitch. Anything the player can
+click rapidly, drag or toggle looks better on a spring.</p>
 
-<h2 id="add-a-spring-to-any-verb">Add a spring to any verb</h2>
+<h2 id="without-a-library-a-spring-on-the-scheduler">Without a library: a spring on the scheduler</h2>
+<p>Every <code>VisualElement</code> has a scheduler that can run code each frame. A damped spring is a few
+lines of math on top of it:</p>
+<pre><code class="cs">using UnityEngine;
+using UnityEngine.UIElements;
+
+public static class SimpleSpring
+{
+    <span class="c">// Springs el's horizontal position to targetX. Each call starts again from zero speed.</span>
+    public static IVisualElementScheduledItem SpringToX(VisualElement el, float targetX,
+                                                        float stiffness = <span class="n">300f</span>, float damping = <span class="n">22f</span>)
+    {
+        float x = el.resolvedStyle.translate.x, velocity = <span class="n">0f</span>;
+        IVisualElementScheduledItem tick = null;
+        tick = el.schedule.<span class="k">Execute</span>(() =&gt;
+        {
+            float dt = Mathf.<span class="k">Min</span>(Time.unscaledDeltaTime, <span class="n">1f</span> / <span class="n">30f</span>);   <span class="c">// keep a frame hitch from exploding it</span>
+            velocity += (stiffness * (targetX - x) - damping * velocity) * dt;
+            x += velocity * dt;
+            el.style.translate = new Translate(x, <span class="n">0</span>);
+            if (Mathf.<span class="k">Abs</span>(targetX - x) &lt; <span class="n">0.01f</span> &amp;&amp; Mathf.<span class="k">Abs</span>(velocity) &lt; <span class="n">0.01f</span>)
+            {
+                el.style.translate = new Translate(targetX, <span class="n">0</span>);
+                tick.<span class="k">Pause</span>();                                          <span class="c">// settled</span>
+            }
+        }).<span class="k">Every</span>(<span class="n">0</span>);
+        return tick;
+    }
+}</code></pre>
+<p>This is fine for one property and one target. It gets harder from there:</p>
+<ul>
+<li>It starts from zero speed on every call, so a quick second click shows the hitch a spring is meant to
+remove. Keeping the speed means storing it per element and pausing the previous run.</li>
+<li>Scale, rotation, colour and size each need their own version.</li>
+<li>Nothing stops it when the element leaves the panel, and two runs on the same element fight each other.</li>
+<li>Stiffness and damping are hard to tune by eye.</li>
+</ul>
+
+<h2 id="with-cascade-a-spring-on-any-verb-pro">With Cascade: a spring on any verb <span class="tier pro">Pro</span></h2>
 <pre><code class="cs">using Cascade;
 
 card.<span class="k">Animate</span>().<span class="k">ScaleTo</span>(<span class="n">1.2f</span>, <span class="n">0f</span>).<span class="k">Spring</span>(SpringPreset.Bouncy);

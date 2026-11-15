@@ -297,13 +297,51 @@ Animate `translate`, `scale`, `rotate` and `opacity` where you can. They don't t
 # Spring animation in Unity UI Toolkit (physics springs for VisualElements)
 Source: https://twitchedd.github.io/cascade/docs/spring-animation.html
 
-A spring moves an element toward its target like a physical object: it speeds up, can overshoot, and settles. Its length comes from its stiffness rather than a fixed duration.
+Unity UI Toolkit has no spring animation built in. USS transitions and the experimental animation API only offer fixed-duration easing curves. You can write a small spring yourself on the panel scheduler, or use a library: Cascade Pro adds a spring to any animation in one call.
 
-The real reason to use one is interruption. When a new target arrives halfway, a spring keeps its current speed and turns toward the new target. An eased tween has to start again from zero speed, which shows as a hitch. Anything the player can click rapidly, drag or toggle looks better on a spring.
+A spring moves an element toward its target like a physical object: it speeds up, can overshoot, and settles. Its length comes from its stiffness rather than a fixed duration. The real reason to use one is interruption. When a new target arrives halfway, a spring keeps its current speed and turns toward the new target. An eased tween has to start again from zero speed, which shows as a hitch. Anything the player can click rapidly, drag or toggle looks better on a spring.
 
-UI Toolkit has no spring animation built in: USS transitions and the experimental animation API only offer fixed-duration easing curves. Cascade Pro adds springs to every verb.
+## Without a library: a spring on the scheduler
 
-## Add a spring to any verb
+Every `VisualElement` has a scheduler that can run code each frame. A damped spring is a few lines of math on top of it:
+
+```csharp
+using UnityEngine;
+using UnityEngine.UIElements;
+
+public static class SimpleSpring
+{
+    // Springs el's horizontal position to targetX. Each call starts again from zero speed.
+    public static IVisualElementScheduledItem SpringToX(VisualElement el, float targetX,
+                                                        float stiffness = 300f, float damping = 22f)
+    {
+        float x = el.resolvedStyle.translate.x, velocity = 0f;
+        IVisualElementScheduledItem tick = null;
+        tick = el.schedule.Execute(() =>
+        {
+            float dt = Mathf.Min(Time.unscaledDeltaTime, 1f / 30f);   // keep a frame hitch from exploding it
+            velocity += (stiffness * (targetX - x) - damping * velocity) * dt;
+            x += velocity * dt;
+            el.style.translate = new Translate(x, 0);
+            if (Mathf.Abs(targetX - x) < 0.01f && Mathf.Abs(velocity) < 0.01f)
+            {
+                el.style.translate = new Translate(targetX, 0);
+                tick.Pause();                                          // settled
+            }
+        }).Every(0);
+        return tick;
+    }
+}
+```
+
+This is fine for one property and one target. It gets harder from there:
+
+- It starts from zero speed on every call, so a quick second click shows the hitch a spring is meant to remove. Keeping the speed means storing it per element and pausing the previous run.
+- Scale, rotation, colour and size each need their own version.
+- Nothing stops it when the element leaves the panel, and two runs on the same element fight each other.
+- Stiffness and damping are hard to tune by eye.
+
+## With Cascade: a spring on any verb Pro
 
 ```csharp
 using Cascade;
@@ -377,7 +415,47 @@ A spring step ends when the spring has settled, then the next step starts.
 # Stagger animation in Unity UI Toolkit: animate list items one after another
 Source: https://twitchedd.github.io/cascade/docs/stagger-list.html
 
-A stagger plays the same animation on each item of a list, each one starting a little later than the one before. It makes a menu or a list of results read as one movement instead of a block appearing at once.
+A stagger plays the same animation on each item of a list, each one starting a little later than the one before, so a menu or a list of results reads as one movement instead of a block appearing at once. In UI Toolkit you can build one from USS transitions with a delay per item, or use Cascade Pro, which does it in one chained call.
+
+## Without a library: USS transitions with a delay per item
+
+Put the hidden and shown states in USS, give each item a longer `transition-delay` from C#, then add the "shown" class:
+
+```css
+.row {
+    opacity: 0;
+    translate: 40px 0;
+    transition-property: opacity, translate;
+    transition-duration: 0.35s;
+    transition-timing-function: ease-out-cubic;
+}
+.row.shown {
+    opacity: 1;
+    translate: 0 0;
+}
+```
+
+```csharp
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine.UIElements;
+
+var items = listRoot.Query<VisualElement>(className: "row").ToList();
+for (int i = 0; i < items.Count; i++)
+    items[i].style.transitionDelay = new List<TimeValue> { new TimeValue(i * 0.06f, TimeUnit.Second) };
+
+// Add the class on the next frame. Added in the same frame the element appears, UI Toolkit skips the transition.
+listRoot.schedule.Execute(() => items.ForEach(e => e.AddToClassList("shown")));
+```
+
+This works with no extra code in your project. Its limits:
+
+- The timing lives in two files, and the delays stay on the items, so hiding the list again staggers too unless you reset them.
+- Items must start hidden in USS. Items that are already visible don't animate.
+- There is no single "the whole list has finished" moment: each item sends its own `TransitionEndEvent`.
+- A transition can't spring, and changing the list halfway leaves items mid-transition.
+
+## With Cascade: one call Pro
 
 ```csharp
 using Cascade;
