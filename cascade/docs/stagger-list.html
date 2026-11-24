@@ -148,6 +148,10 @@ items.<span class="k">AnimateEach</span>()
      .<span class="k">Stagger</span>(<span class="n">0.06f</span>);              <span class="c">// item i starts i × 0.06 s after the first</span></code></pre>
 <p><code>AnimateEach()</code> works on any list of <code>VisualElement</code>s, so the result of a UQuery
 works directly.</p>
+<p>Use <code>AnimateEach()</code> and <code>Stagger()</code> rather than a loop of
+<code>schedule.Execute().StartingIn()</code> calls: one builder times the whole group in seconds, and stopping
+or replaying the list stops every item. Cascade has no <code>FadeIn()</code> method; fade in with
+<code>Fade(1f, 0.35f).From(0f)</code>.</p>
 <p>Write <code>From(0f)</code> on the fade. Each item starts from its own value when its turn comes, and
 an item that is already visible has nothing to fade. <code>From</code> also hides the later items right
 away, so they don't flash before their turn.</p>

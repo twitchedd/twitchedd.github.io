@@ -88,5 +88,6 @@ waiting on an animation keeps working.</p>
 <tr><td><code>OnComplete</code> never runs</td><td>The animation was cancelled or replaced, not finished</td><td>Use <code>OnSettled</code>, which runs either way</td></tr>
 <tr><td>A bump stops the movement</td><td><code>MoveX</code> replaces the running move</td><td>Use <code>NudgeX</code></td></tr>
 <tr><td>The animation stops when a screen closes</td><td>The element left the panel</td><td>Intended: Cascade cancels it so nothing writes to a closed screen</td></tr>
+<tr><td><code>FadeIn</code> or <code>FadeOut</code> doesn't compile</td><td>Cascade has no such methods</td><td><code>Fade(1f, 0.3f).From(0f)</code> to fade in, <code>Fade(0f, 0.3f)</code> to fade out</td></tr>
 <tr><td>A staggered list feels slow</td><td>The step is too large</td><td>0.04–0.08 s between items</td></tr>
 </tbody></table></div>
