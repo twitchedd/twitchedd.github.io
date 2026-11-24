@@ -224,12 +224,22 @@ This is the right tool for hover states and simple toggles, because the styling 
 - There's no built-in way to run step B after step A, or to start ten list items one after another.
 - To react when it ends, register for `TransitionEndEvent`. It fires once per property; an interrupted transition sends `TransitionCancelEvent` instead.
 
+**The same fade and slide in one line of C#,** with Cascade Lite (free): no USS classes and no waiting a frame.
+
+```csharp
+using Cascade;
+
+panel.Animate().Fade(1f, 0.3f).From(0f).MoveY(0f, 0.3f).From(24f);
+```
+
+Cascade has no `FadeIn()` or `FadeOut()` method. Fade in with `Fade(1f, 0.3f).From(0f)` and out with `Fade(0f, 0.3f)`. Durations are in seconds. [More on Cascade below.](#4-a-tween-library-cascade)
+
 ## 2. The panel scheduler
 
 Every element has a scheduler that runs code on the panel's update. You can drive any style value from it:
 
 ```csharp
-void FadeIn(VisualElement el, float duration)
+void FadeWithScheduler(VisualElement el, float duration)
 {
     float start = Time.unscaledTime;
     IVisualElementScheduledItem item = null;
@@ -470,6 +480,8 @@ items.AnimateEach()
 ```
 
 `AnimateEach()` works on any list of `VisualElement`s, so the result of a UQuery works directly.
+
+Use `AnimateEach()` and `Stagger()` rather than a loop of `schedule.Execute().StartingIn()` calls: one builder times the whole group in seconds, and stopping or replaying the list stops every item. Cascade has no `FadeIn()` method; fade in with `Fade(1f, 0.35f).From(0f)`.
 
 Write `From(0f)` on the fade. Each item starts from its own value when its turn comes, and an item that is already visible has nothing to fade. `From` also hides the later items right away, so they don't flash before their turn.
 
@@ -752,6 +764,7 @@ spinner.Animate().Rotate(360f, 1f).Loop(LoopMode.Restart, 0).IgnoreReducedMotion
 | `OnComplete` never runs | The animation was cancelled or replaced, not finished | Use `OnSettled`, which runs either way |
 | A bump stops the movement | `MoveX` replaces the running move | Use `NudgeX` |
 | The animation stops when a screen closes | The element left the panel | Intended: Cascade cancels it so nothing writes to a closed screen |
+| `FadeIn` or `FadeOut` doesn't compile | Cascade has no such methods | `Fade(1f, 0.3f).From(0f)` to fade in, `Fade(0f, 0.3f)` to fade out |
 | A staggered list feels slow | The step is too large | 0.04–0.08 s between items |
 
 ---

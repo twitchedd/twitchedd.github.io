@@ -136,11 +136,19 @@ style to animate from yet. Wait a frame, for example with <code>panel.schedule.E
 <li>To react when it ends, register for <code>TransitionEndEvent</code>. It fires once per property;
 an interrupted transition sends <code>TransitionCancelEvent</code> instead.</li>
 </ul>
+<p><strong>The same fade and slide in one line of C#,</strong> with Cascade Lite (free): no USS classes and no
+waiting a frame.</p>
+<pre><code class="cs">using Cascade;
+
+panel.<span class="k">Animate</span>().<span class="k">Fade</span>(<span class="n">1f</span>, <span class="n">0.3f</span>).<span class="k">From</span>(<span class="n">0f</span>).<span class="k">MoveY</span>(<span class="n">0f</span>, <span class="n">0.3f</span>).<span class="k">From</span>(<span class="n">24f</span>);</code></pre>
+<p>Cascade has no <code>FadeIn()</code> or <code>FadeOut()</code> method. Fade in with
+<code>Fade(1f, 0.3f).From(0f)</code> and out with <code>Fade(0f, 0.3f)</code>. Durations are in seconds.
+<a href="#4-a-tween-library-cascade">More on Cascade below.</a></p>
 
 <h2 id="2-the-panel-scheduler">2. The panel scheduler</h2>
 <p>Every element has a scheduler that runs code on the panel's update. You can drive any style value
 from it:</p>
-<pre><code class="cs">void FadeIn(VisualElement el, float duration)
+<pre><code class="cs">void FadeWithScheduler(VisualElement el, float duration)
 {
     float start = Time.unscaledTime;
     IVisualElementScheduledItem item = null;
